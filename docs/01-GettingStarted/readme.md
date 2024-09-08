@@ -16,6 +16,14 @@
     - [Example Use Case: A Simple Spring Boot Application](#example-use-case-a-simple-spring-boot-application)
     - [Conclusion](#conclusion)
   - [004 Creating a simple Spring Boot app with out security - Part 2](#004-creating-a-simple-spring-boot-app-with-out-security---part-2)
+    - [1. **`spring.application.name=${SPRING_APP_ID:bank}`**](#1-springapplicationnamespring_app_idbank)
+      - [Example:](#example)
+    - [2. **`logging.pattern.console=${LOG_PATTERN_CONSOLE:%green(%d{HH:mm:ss.SSS}) %blue(%-5level) %red([%thread]) %yellow(%logger{15}) - %msg%n}`**](#2-loggingpatternconsolelog_pattern_consolegreendhhmmsssss-blue-5level-redthread-yellowlogger15---msgn)
+      - [Detailed Breakdown of the Log Pattern:](#detailed-breakdown-of-the-log-pattern)
+      - [Example of Console Output:](#example-of-console-output)
+    - [**Why Customize the Log Pattern?**](#why-customize-the-log-pattern)
+      - [Example Use Case:](#example-use-case)
+    - [**Summary**](#summary)
     - [1. **Controller Class**](#1-controller-class)
     - [2. **`@GetMapping("/welcome")`**](#2-getmappingwelcome)
     - [3. **Method: `welcome()`**](#3-method-welcome)
@@ -367,6 +375,133 @@ This POM file defines a basic Spring Boot project with dependencies for web deve
 spring.application.name=${SPRING_APP_ID:bank}
 logging.pattern.console=${LOG_PATTERN_CONSOLE:%green(%d{HH:mm:ss.SSS}) %blue(%-5level) %red([%thread]) %yellow(%logger{15}) - %msg%n}
 ```
+
+This configuration snippet is part of a **Spring Boot** application's configuration file, likely from `application.properties` or `application.yml`. These two properties define the application's name and configure the console log pattern.
+
+Let’s break down each part to understand what they do and how they are used with examples:
+
+---
+
+### 1. **`spring.application.name=${SPRING_APP_ID:bank}`**
+
+This property sets the name of the Spring Boot application, which is important for logging, monitoring, and management purposes. It uses a **placeholder** with an environment variable fallback.
+
+- **`spring.application.name`**: This property defines the name of the Spring Boot application. It’s a key property used for identifying the application in different Spring features such as **Spring Cloud**, **Spring Boot Admin**, and **logging**.
+
+- **`${SPRING_APP_ID:bank}`**: This part indicates that the value of `spring.application.name` will be set in the following manner:
+  - **`${SPRING_APP_ID}`**: This refers to an **environment variable** named `SPRING_APP_ID`. If this environment variable is set in the operating system or the application's deployment environment, the application name will be set to the value of `SPRING_APP_ID`.
+  - **`:bank`**: If the `SPRING_APP_ID` environment variable is **not set**, the application name will default to `"bank"`. This is a fallback value.
+
+#### Example:
+
+- **Scenario 1: `SPRING_APP_ID` is set in the environment**:
+  If you have an environment variable like this:
+  ```bash
+  export SPRING_APP_ID=my-custom-app
+  ```
+
+  The application name will be set to `my-custom-app` in this case. This can be used for differentiating instances in a cloud environment, for example:
+  ```yaml
+  spring:
+    application:
+      name: ${SPRING_APP_ID:bank}
+  ```
+
+  When you start your Spring Boot application, the following logs will include `my-custom-app`:
+  ```bash
+  2024-09-05 12:45:12.123 INFO [my-custom-app] - Application started
+  ```
+
+- **Scenario 2: `SPRING_APP_ID` is not set**:
+  If the `SPRING_APP_ID` environment variable is **not set**, the application name defaults to `bank`:
+  ```bash
+  2024-09-05 12:45:12.123 INFO [bank] - Application started
+  ```
+
+**Use Case**:
+This feature is useful when you need to set different names for the application based on the environment. For example, in **production**, you might use a name like `"bank-production"`, while in **development**, it could be `"bank-development"`. This helps in monitoring and distinguishing between different instances of the application.
+
+---
+
+### 2. **`logging.pattern.console=${LOG_PATTERN_CONSOLE:%green(%d{HH:mm:ss.SSS}) %blue(%-5level) %red([%thread]) %yellow(%logger{15}) - %msg%n}`**
+
+This property defines the **log pattern** that Spring Boot uses when writing logs to the console. It uses placeholders and ANSI color codes to customize the log output.
+
+- **`logging.pattern.console`**: This property sets the **format of log messages** in the console. You can customize the format using **placeholders** for various log elements, such as the timestamp, log level, thread name, logger name, and the actual log message.
+
+- **`${LOG_PATTERN_CONSOLE:%green(...)}%blue(...)...`**: This uses a placeholder with a default value. Let’s break it down:
+  - **`${LOG_PATTERN_CONSOLE}`**: This references an external environment variable or system property. If it’s defined, its value will be used to set the log pattern.
+  - **`:%green(... %msg%n)`**: If `LOG_PATTERN_CONSOLE` is **not set**, this default value is used, which specifies a **colored log pattern**. This pattern uses **ANSI colors** to make the logs easier to read in the console.
+
+#### Detailed Breakdown of the Log Pattern:
+
+```java
+%green(%d{HH:mm:ss.SSS}) %blue(%-5level) %red([%thread]) %yellow(%logger{15}) - %msg%n
+```
+
+- **`%green(...)`**: This makes the enclosed content **green** in the console using ANSI color codes. You can use different colors for different parts of the log to highlight important information.
+  
+- **`%d{HH:mm:ss.SSS}`**: This represents the **timestamp** of the log entry in the format **hours:minutes:seconds.milliseconds**.
+  - Example: `12:45:12.123`.
+
+- **`%blue(%-5level)`**: This prints the **log level** (e.g., INFO, DEBUG, ERROR) in **blue**. The `%-5level` ensures that the log level is left-aligned and takes up 5 characters, providing consistent alignment.
+  - Example: `INFO`, `ERROR`.
+
+- **`%red([%thread])`**: This prints the **name of the thread** in **red**, enclosed in square brackets.
+  - Example: `[main]`.
+
+- **`%yellow(%logger{15})`**: This prints the **logger name** (the class or package generating the log message) in **yellow**. The `{15}` means that the logger name is truncated to a maximum of 15 characters.
+  - Example: `com.example.Controller`.
+
+- **`- %msg`**: This prints the actual **log message**. The log message can be anything the application logs, such as error messages or information about the application's behavior.
+  - Example: `Application started`.
+
+- **`%n`**: This inserts a **newline character** at the end of the log message.
+
+#### Example of Console Output:
+
+With the log pattern configured as above, a typical log message might look like this:
+
+```bash
+12:45:12.123 INFO  [main]  com.example.Service - Application started
+```
+
+- **Green** timestamp: `12:45:12.123`
+- **Blue** log level: `INFO`
+- **Red** thread: `[main]`
+- **Yellow** logger name: `com.example.Service`
+- Log message: `Application started`
+
+---
+
+### **Why Customize the Log Pattern?**
+
+Customizing the log pattern is useful for making logs more readable, especially when troubleshooting or debugging. For example:
+1. **Coloring**: By color-coding different parts of the log, you can easily distinguish between timestamps, log levels, threads, and messages.
+2. **Alignment**: The `%5level` ensures that log levels are aligned, which can make reading large log files easier.
+3. **Truncated Logger Names**: Limiting the length of logger names prevents long class or package names from making logs harder to read, especially in complex applications.
+
+#### Example Use Case:
+
+In a **microservice architecture**, different services log information concurrently. By using a custom log pattern, such as coloring by log level or thread name, you can easily differentiate logs for different threads or services. For example, `ERROR` messages might stand out in **red**, while `INFO` messages could be in **blue**, helping you quickly identify issues.
+
+---
+
+### **Summary**
+
+1. **`spring.application.name=${SPRING_APP_ID:bank}`**:
+   - Sets the Spring Boot application's name.
+   - If the `SPRING_APP_ID` environment variable is defined, its value is used; otherwise, the name defaults to `"bank"`.
+   - Helps in identifying the application in logs, monitoring systems, and microservices environments.
+
+2. **`logging.pattern.console=${LOG_PATTERN_CONSOLE:%green(%d{HH:mm:ss.SSS}) %blue(%-5level) %red([%thread]) %yellow(%logger{15}) - %msg%n}`**:
+   - Customizes the console log output format.
+   - Uses color coding and formatting to improve readability.
+   - Defines elements like the timestamp, log level, thread name, logger, and log message.
+   - Makes it easier to distinguish important log entries, such as errors, in a multi-threaded or multi-service environment.
+
+By customizing these configurations, you make your Spring Boot application more manageable and its logs easier to analyze, especially in production environments where quick troubleshooting and monitoring are critical.
+
 
 ```java
 package com.wchamara.springsecurity.controller;
