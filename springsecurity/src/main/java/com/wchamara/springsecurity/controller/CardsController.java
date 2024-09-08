@@ -7,8 +7,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class CardsController {
 
-    @GetMapping("/welcome")
-    public String welcome() {
-        return "Welcome to the Bank";
+    @GetMapping("/myCards")
+    public String getCardsDetails() {
+        return "Here are your cards";
     }
 }

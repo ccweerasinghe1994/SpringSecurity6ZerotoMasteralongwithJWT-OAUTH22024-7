@@ -7,8 +7,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class ContactController {
 
-    @GetMapping("/welcome")
-    public String welcome() {
-        return "Welcome to the Bank";
+    @GetMapping("/contact")
+    public String saveContactInquiryDetails() {
+        return "Inquiry saved successfully";
     }
 }

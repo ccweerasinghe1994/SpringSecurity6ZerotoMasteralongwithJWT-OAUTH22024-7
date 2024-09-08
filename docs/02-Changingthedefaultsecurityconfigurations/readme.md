@@ -15,6 +15,30 @@
 
 ## 002 Creating backend services needed for the EazyBank application
 
+![alt text](image-1.png)
+![alt text](image-2.png)
+
+```java
+package com.wchamara.springsecurity.controller;
+
+
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+public class AccountController {
+
+    @GetMapping("/myAccount")
+    public String accountDetails() {
+        return "Here are your account details";
+    }
+}
+
+```
+
+other controller follows the same pattern
+
+
 
 ## 003 Checking the default configuration inside the spring security framework
 
