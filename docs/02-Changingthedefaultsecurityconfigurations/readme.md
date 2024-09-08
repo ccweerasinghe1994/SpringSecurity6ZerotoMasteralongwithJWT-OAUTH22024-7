@@ -1,6 +1,6 @@
-# 02 - Changing the default security configurations
+# 
 
-- [02 - Changing the default security configurations](#02---changing-the-default-security-configurations)
+- [](#)
   - [001 Understanding about UI part of the EazyBank application](#001-understanding-about-ui-part-of-the-eazybank-application)
   - [002 Creating backend services needed for the EazyBank application](#002-creating-backend-services-needed-for-the-eazybank-application)
   - [003 Checking the default configuration inside the spring security framework](#003-checking-the-default-configuration-inside-the-spring-security-framework)
