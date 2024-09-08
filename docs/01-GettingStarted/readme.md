@@ -37,6 +37,43 @@
     - [8. **Securing the Endpoint**](#8-securing-the-endpoint)
     - [Conclusion](#conclusion-1)
   - [005 Securing Spring Boot basic app using Spring Security \& static credentials](#005-securing-spring-boot-basic-app-using-spring-security--static-credentials)
+    - [1. **Spring Boot Security Dependency**](#1-spring-boot-security-dependency)
+      - [**Purpose**](#purpose)
+      - [**Example Use Cases**](#example-use-cases)
+        - [1. **Securing Endpoints**](#1-securing-endpoints)
+        - [2. **Customizing Security Configurations**](#2-customizing-security-configurations)
+    - [2. **Spring Security Test Dependency**](#2-spring-security-test-dependency)
+      - [**Purpose**](#purpose-1)
+      - [**Example Use Cases**](#example-use-cases-1)
+        - [1. **Testing with `@WithMockUser`**](#1-testing-with-withmockuser)
+        - [2. **Testing JWT Authentication**](#2-testing-jwt-authentication)
+    - [**Summary**](#summary-1)
+    - [**1. `@ConfigurationProperties(prefix = "spring.security")` Annotation**](#1-configurationpropertiesprefix--springsecurity-annotation)
+    - [**2. Default Constants in the Class**](#2-default-constants-in-the-class)
+    - [**3. `Filter` Inner Class**](#3-filter-inner-class)
+      - [**Key Properties**:](#key-properties)
+      - [**Example Configuration**:](#example-configuration)
+    - [**4. `User` Inner Class**](#4-user-inner-class)
+      - [**Key Properties**:](#key-properties-1)
+      - [**Password Behavior**:](#password-behavior)
+      - [**Example Configuration**:](#example-configuration-1)
+      - [**Default Behavior**:](#default-behavior)
+    - [**5. Methods and Getters**](#5-methods-and-getters)
+      - [**Password Generation Logic**:](#password-generation-logic)
+      - [**Example Programmatic Use**:](#example-programmatic-use)
+    - [**6. How It Works in Spring Boot**](#6-how-it-works-in-spring-boot)
+    - [**Summary**](#summary-2)
+    - [Breakdown of Each Property:](#breakdown-of-each-property)
+    - [**Use Case and Benefits**](#use-case-and-benefits)
+    - [**How Environment Variables Work with Spring Boot**](#how-environment-variables-work-with-spring-boot)
+    - [**Examples**](#examples)
+      - [1. **Basic Example of Configuring Username and Password**](#1-basic-example-of-configuring-username-and-password)
+      - [2. **Setting Environment Variables in Docker**](#2-setting-environment-variables-in-docker)
+      - [3. **Providing Default Values in Case Environment Variables are Not Set**](#3-providing-default-values-in-case-environment-variables-are-not-set)
+    - [**Advanced Use Cases**](#advanced-use-cases)
+      - [1. **Kubernetes Secrets**](#1-kubernetes-secrets)
+      - [2. **Using Profiles for Different Environments**](#2-using-profiles-for-different-environments)
+    - [**Summary**](#summary-3)
   - [006 Funny memes on Security](#006-funny-memes-on-security)
   - [007 What is Security \& Why it is important](#007-what-is-security--why-it-is-important)
   - [008 Quick introduction to Servlets \& Filters](#008-quick-introduction-to-servlets--filters)
@@ -718,6 +755,707 @@ The `WelcomeController` is a simple example of a **REST controller** in Spring B
 By using Spring Boot’s simplified annotations and defaults, you can quickly create powerful web services without extensive configuration.
 
 ## 005 Securing Spring Boot basic app using Spring Security & static credentials
+
+```xml
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+```
+These two Maven dependencies add **Spring Security** and **Spring Security testing** support to your **Spring Boot** application. Let's break down each dependency, its purpose, and how it is used in real-world scenarios with examples.
+
+---
+
+### 1. **Spring Boot Security Dependency**
+
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-security</artifactId>
+</dependency>
+```
+
+#### **Purpose**
+
+This dependency pulls in Spring Security, which provides authentication, authorization, and security-related features for your Spring Boot application. **Spring Boot Starter Security** includes:
+- **Authentication mechanisms**: Username-password-based login, OAuth2, JWT, etc.
+- **Authorization rules**: Role-based access control (RBAC) and method-level security.
+- **Protection against common attacks**: Like Cross-Site Request Forgery (CSRF), session fixation, etc.
+- **Preconfigured filters**: Security filters like `UsernamePasswordAuthenticationFilter`, `BasicAuthenticationFilter`, and `ExceptionTranslationFilter`.
+
+By including this dependency, you enable Spring Boot to automatically configure many security features.
+
+#### **Example Use Cases**
+
+##### 1. **Securing Endpoints**
+
+Once this dependency is added, **Spring Boot** automatically applies basic authentication to all routes in your application. By default, all endpoints will require authentication, and a basic login form will be displayed.
+
+For example, before customizing security, when you access any endpoint, like:
+
+```plaintext
+http://localhost:8080/welcome
+```
+
+You’ll be redirected to a default login page where Spring Security prompts for credentials (username and password).
+
+To access the endpoint, you would need to provide the default Spring Boot-generated credentials:
+- Username: `user`
+- Password: Automatically generated (found in the console logs when the application starts).
+
+##### 2. **Customizing Security Configurations**
+
+You can customize security settings by creating a configuration class:
+
+```java
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.web.SecurityFilterChain;
+
+@Configuration
+public class SecurityConfig {
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http
+            .authorizeHttpRequests(auth -> auth
+                .antMatchers("/public/**").permitAll()  // Allow public access to these URLs
+                .anyRequest().authenticated()  // All other URLs require authentication
+            )
+            .formLogin();  // Use form-based login
+        return http.build();
+    }
+}
+```
+
+In this example:
+- **`/public/**`**: Publicly accessible URLs.
+- **Other URLs**: Require authentication.
+- **`formLogin()`**: Enables a default login form.
+
+With this configuration, requests to `/public/any-resource` will be accessible without authentication, but other routes (like `/welcome`) will prompt for credentials.
+
+---
+
+### 2. **Spring Security Test Dependency**
+
+```xml
+<dependency>
+    <groupId>org.springframework.security</groupId>
+    <artifactId>spring-security-test</artifactId>
+    <scope>test</scope>
+</dependency>
+```
+
+#### **Purpose**
+
+This dependency provides tools for testing security-related functionality in your Spring Boot application. It includes test utilities such as:
+- **`@WithMockUser`**: Simulate a logged-in user with specific roles or permissions.
+- **`SecurityMockMvcRequestPostProcessors.jwt()`**: Simulate JWT-based authentication in tests.
+- **`SecurityContextTestExecutionListener`**: Set up a security context during test execution.
+
+This dependency is scoped for **testing only** (`<scope>test</scope>`), meaning it’s only included in the classpath during test execution and not in production builds.
+
+#### **Example Use Cases**
+
+##### 1. **Testing with `@WithMockUser`**
+
+The `@WithMockUser` annotation allows you to simulate an authenticated user in a test. It’s useful when you need to test secured endpoints without going through the full authentication process.
+
+Example: Testing a secured controller endpoint with a mock user.
+
+```java
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+@SpringBootTest
+@AutoConfigureMockMvc
+public class WelcomeControllerTest {
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @Test
+    @WithMockUser(username = "user", roles = {"USER"})
+    void testWelcomeEndpoint_withAuthentication() throws Exception {
+        mockMvc.perform(get("/welcome"))
+                .andExpect(status().isOk());  // Expect 200 OK because the user is authenticated
+    }
+
+    @Test
+    void testWelcomeEndpoint_withoutAuthentication() throws Exception {
+        mockMvc.perform(get("/welcome"))
+                .andExpect(status().isUnauthorized());  // Expect 401 Unauthorized because no authentication is provided
+    }
+}
+```
+
+In this example:
+- **`@WithMockUser(username = "user", roles = {"USER"})`**: This simulates a user with the username `"user"` and the role `"USER"` making the request.
+- **`testWelcomeEndpoint_withAuthentication()`**: This test checks if an authenticated user can access the `/welcome` endpoint.
+- **`testWelcomeEndpoint_withoutAuthentication()`**: This test verifies that accessing the `/welcome` endpoint without authentication returns `401 Unauthorized`.
+
+##### 2. **Testing JWT Authentication**
+
+For applications using JWT-based authentication, the `spring-security-test` library provides utilities to simulate JWT tokens in tests.
+
+Example: Testing an endpoint that requires a valid JWT token.
+
+```java
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+@SpringBootTest
+@AutoConfigureMockMvc
+public class JwtSecuredEndpointTest {
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @Test
+    void testJwtSecuredEndpoint_withValidToken() throws Exception {
+        mockMvc.perform(get("/secured-endpoint")
+                        .with(jwt().jwt(jwt -> jwt.claim("scope", "read").subject("user123"))))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void testJwtSecuredEndpoint_withoutToken() throws Exception {
+        mockMvc.perform(get("/secured-endpoint"))
+                .andExpect(status().isUnauthorized());
+    }
+}
+```
+
+In this example:
+- **`with(jwt())`**: This utility simulates a JWT-based authentication by providing a mock JWT token.
+- **JWT claims**: The token contains a subject (`"user123"`) and a scope claim (`"read"`).
+- **`testJwtSecuredEndpoint_withValidToken()`**: This test ensures that the `/secured-endpoint` can be accessed with a valid JWT token.
+- **`testJwtSecuredEndpoint_withoutToken()`**: This test verifies that accessing the endpoint without a JWT token returns a `401 Unauthorized` response.
+
+---
+
+### **Summary**
+
+- **`spring-boot-starter-security`**: This dependency adds Spring Security to your application, providing robust security features like authentication, authorization, and protection against attacks. It automatically secures all endpoints by default and can be customized to allow specific access control rules, such as role-based access control.
+  
+- **`spring-security-test`**: This dependency helps you write unit and integration tests for your Spring Security configurations. It includes utilities like `@WithMockUser` to simulate authenticated users and `jwt()` for JWT token-based authentication testing, enabling you to test the security of your endpoints in various scenarios.
+
+By combining these two dependencies, you can create secure applications and write comprehensive tests to ensure that your security configurations behave as expected.
+
+![alt text](image-9.png)
+![alt text](image-10.png)
+
+```java
+//
+// Source code recreated from a .class file by IntelliJ IDEA
+// (powered by FernFlower decompiler)
+//
+
+package org.springframework.boot.autoconfigure.security;
+
+import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.web.servlet.DispatcherType;
+import org.springframework.util.StringUtils;
+
+@ConfigurationProperties(
+    prefix = "spring.security"
+)
+public class SecurityProperties {
+    public static final int BASIC_AUTH_ORDER = 2147483642;
+    public static final int IGNORED_ORDER = Integer.MIN_VALUE;
+    public static final int DEFAULT_FILTER_ORDER = -100;
+    private final Filter filter = new Filter();
+    private final User user = new User();
+
+    public SecurityProperties() {
+    }
+
+    public User getUser() {
+        return this.user;
+    }
+
+    public Filter getFilter() {
+        return this.filter;
+    }
+
+    public static class Filter {
+        private int order = -100;
+        private Set<DispatcherType> dispatcherTypes = EnumSet.allOf(DispatcherType.class);
+
+        public Filter() {
+        }
+
+        public int getOrder() {
+            return this.order;
+        }
+
+        public void setOrder(int order) {
+            this.order = order;
+        }
+
+        public Set<DispatcherType> getDispatcherTypes() {
+            return this.dispatcherTypes;
+        }
+
+        public void setDispatcherTypes(Set<DispatcherType> dispatcherTypes) {
+            this.dispatcherTypes = dispatcherTypes;
+        }
+    }
+
+    public static class User {
+        private String name = "user";
+        private String password = UUID.randomUUID().toString();
+        private List<String> roles = new ArrayList();
+        private boolean passwordGenerated = true;
+
+        public User() {
+        }
+
+        public String getName() {
+            return this.name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public String getPassword() {
+            return this.password;
+        }
+
+        public void setPassword(String password) {
+            if (StringUtils.hasLength(password)) {
+                this.passwordGenerated = false;
+                this.password = password;
+            }
+        }
+
+        public List<String> getRoles() {
+            return this.roles;
+        }
+
+        public void setRoles(List<String> roles) {
+            this.roles = new ArrayList(roles);
+        }
+
+        public boolean isPasswordGenerated() {
+            return this.passwordGenerated;
+        }
+    }
+}
+
+```
+The provided `SecurityProperties` class is part of the **Spring Boot** auto-configuration framework and defines security-related properties for configuring the application’s security behavior. This class is annotated with `@ConfigurationProperties`, meaning it binds properties from the `application.properties` or `application.yml` file (with a `spring.security` prefix) to its fields. 
+
+It handles key aspects of **security configuration**, such as **filter ordering** and **user authentication settings** (e.g., default username and password). Let’s go through this class step by step, providing explanations and examples where appropriate.
+
+---
+
+### **1. `@ConfigurationProperties(prefix = "spring.security")` Annotation**
+
+```java
+@ConfigurationProperties(prefix = "spring.security")
+public class SecurityProperties
+```
+
+- **Purpose**: This annotation tells Spring Boot to map configuration properties (prefixed with `spring.security`) from the `application.properties` or `application.yml` file to the fields in the `SecurityProperties` class. For example, properties like `spring.security.user.name` or `spring.security.filter.order` will be mapped to the respective fields.
+
+- **Example**: If you have the following in your `application.properties` file:
+  
+  ```properties
+  spring.security.user.name=admin
+  spring.security.user.password=adminpass
+  ```
+
+  Spring Boot will map these properties to the `name` and `password` fields in the `User` class.
+
+---
+
+### **2. Default Constants in the Class**
+
+```java
+public static final int BASIC_AUTH_ORDER = 2147483642;
+public static final int IGNORED_ORDER = Integer.MIN_VALUE;
+public static final int DEFAULT_FILTER_ORDER = -100;
+```
+
+These constants are default values used internally by Spring Boot to configure security-related filters and authentication mechanisms:
+
+- **`BASIC_AUTH_ORDER`**: Defines the order in which the basic authentication filter is applied (value `2147483642`, close to the maximum value of an integer). The higher the number, the later the filter is executed.
+- **`IGNORED_ORDER`**: This is the lowest possible order (`Integer.MIN_VALUE`), likely used to specify ignored security settings.
+- **`DEFAULT_FILTER_ORDER`**: The default order for the Spring Security filter chain (`-100`), which dictates the position of the security filter relative to others.
+
+**Example Use Case**: These constants define the execution order of security filters in the filter chain. You can change the order of filters using properties in your configuration file.
+
+---
+
+### **3. `Filter` Inner Class**
+
+```java
+public static class Filter {
+    private int order = -100;
+    private Set<DispatcherType> dispatcherTypes = EnumSet.allOf(DispatcherType.class);
+
+    // Getters and setters...
+}
+```
+
+The `Filter` class defines properties related to the security filter configuration.
+
+#### **Key Properties**:
+- **`order`**: This controls the order in which the security filter is applied. It defaults to `-100` (as defined by `DEFAULT_FILTER_ORDER`).
+- **`dispatcherTypes`**: This defines the types of requests (or dispatchers) the filter will handle. `DispatcherType` is an enum used in Java Servlet-based applications to represent different stages of request processing (like `REQUEST`, `FORWARD`, `INCLUDE`, etc.).
+
+#### **Example Configuration**:
+You can configure the filter’s order and dispatcher types in `application.properties`:
+
+```properties
+spring.security.filter.order=-50  # Change the filter order
+```
+
+---
+
+### **4. `User` Inner Class**
+
+```java
+public static class User {
+    private String name = "user";
+    private String password = UUID.randomUUID().toString();
+    private List<String> roles = new ArrayList();
+    private boolean passwordGenerated = true;
+
+    // Getters and setters...
+}
+```
+
+The `User` class handles the default user details for Spring Security, specifically related to **basic authentication**.
+
+#### **Key Properties**:
+- **`name`**: This is the username used for authentication. It defaults to `"user"`, but can be customized in `application.properties`.
+- **`password`**: This is the password for the default user. It is randomly generated using `UUID` by default, but can also be explicitly set through configuration.
+- **`roles`**: A list of roles assigned to the default user. This is empty by default but can be populated with roles like `"USER"`, `"ADMIN"`, etc.
+- **`passwordGenerated`**: A flag that indicates whether the password was automatically generated (`true`) or explicitly set by the user (`false`).
+
+#### **Password Behavior**:
+- If you don’t explicitly set a password in your configuration, Spring Boot generates a random password and prints it to the console when the application starts.
+  
+#### **Example Configuration**:
+You can override these properties in your `application.properties`:
+
+```properties
+spring.security.user.name=admin
+spring.security.user.password=adminpassword
+spring.security.user.roles=USER,ADMIN
+```
+
+#### **Default Behavior**:
+If no properties are set, Spring Boot will generate a random password for the user:
+
+- Default username: `user`
+- Generated password: Printed in the console on application startup.
+
+---
+
+### **5. Methods and Getters**
+
+The methods and getters in both the `User` and `Filter` classes allow you to retrieve or set the properties defined in these classes.
+
+- **Getters for Filter Properties**:
+  
+  ```java
+  public int getOrder() {
+      return this.order;
+  }
+
+  public Set<DispatcherType> getDispatcherTypes() {
+      return this.dispatcherTypes;
+  }
+  ```
+
+  These methods retrieve the order and dispatcher types for the security filter. You can use these methods to programmatically check the current security filter settings.
+
+- **Getters and Setters for User Properties**:
+
+  ```java
+  public String getName() {
+      return this.name;
+  }
+
+  public void setName(String name) {
+      this.name = name;
+  }
+
+  public String getPassword() {
+      return this.password;
+  }
+
+  public void setPassword(String password) {
+      if (StringUtils.hasLength(password)) {
+          this.passwordGenerated = false;
+          this.password = password;
+      }
+  }
+  ```
+
+  These methods retrieve and set user-related properties such as `name`, `password`, and `roles`. The `setPassword()` method also updates the `passwordGenerated` flag based on whether the password is explicitly set or generated randomly.
+
+#### **Password Generation Logic**:
+- If `StringUtils.hasLength(password)` returns `true` (i.e., if a password is explicitly provided), the `passwordGenerated` flag is set to `false` to indicate that the password was not auto-generated.
+  
+#### **Example Programmatic Use**:
+If you are working in Java code, you can use the `SecurityProperties.User` class to manage user credentials:
+
+```java
+@Autowired
+private SecurityProperties securityProperties;
+
+public void printUserDetails() {
+    System.out.println("Username: " + securityProperties.getUser().getName());
+    System.out.println("Password: " + securityProperties.getUser().getPassword());
+}
+```
+
+This will print the current username and password configured in the application, either from the configuration file or from the default values.
+
+---
+
+### **6. How It Works in Spring Boot**
+
+- When you start a **Spring Boot** application, the `SecurityProperties` class loads and initializes with the values defined in your `application.properties` (or `.yml`) file under the `spring.security` prefix.
+- If no properties are set, the default user (`user`) and a random password are generated and printed in the logs.
+- These properties can be accessed throughout the application for configuring or adjusting the security settings dynamically.
+
+---
+
+### **Summary**
+
+- The `SecurityProperties` class is part of Spring Boot's auto-configuration mechanism that handles the basic security configuration for the application.
+- It defines default settings such as the username and password for basic authentication, the filter order, and dispatcher types.
+- These properties can be easily customized in `application.properties` under the `spring.security` prefix.
+- Spring Boot automatically provides a randomly generated password for the user if not explicitly set, making it easier to secure applications during development.
+
+By providing sensible defaults and an easy-to-configure approach, `SecurityProperties` simplifies security setup in Spring Boot applications while allowing custom behavior as needed.
+
+[username](https://docs.spring.io/spring-boot/appendix/application-properties/index.html#application-properties.security.spring.security.user.name)
+
+[password](https://docs.spring.io/spring-boot/appendix/application-properties/index.html#application-properties.security.spring.security.user.passwords)
+
+```properties
+spring.security.user.name=admin
+spring.security.user.password=adminpassword
+```
+The two lines of configuration you’ve provided are used in a **Spring Boot** application to configure the **username** and **password** for basic authentication. These properties, `spring.security.user.name` and `spring.security.user.password`, are mapped to environment variables, allowing dynamic configuration of the security credentials at runtime.
+
+### Breakdown of Each Property:
+
+```properties
+spring.security.user.name=${SPRING_SECURITY_USER_NAME}
+spring.security.user.password=${SPRING_SECURITY_USER_PASSWORD}
+```
+
+These two lines make use of **Spring’s property placeholder syntax** (`${...}`) to refer to environment variables (`SPRING_SECURITY_USER_NAME` and `SPRING_SECURITY_USER_PASSWORD`). Here’s how it works:
+
+- **`spring.security.user.name=${SPRING_SECURITY_USER_NAME}`**:
+  - This sets the username for basic authentication. The value is not hard-coded but instead references an environment variable (`SPRING_SECURITY_USER_NAME`).
+  - At runtime, Spring Boot will attempt to retrieve the value of `SPRING_SECURITY_USER_NAME` from the system environment. If it is set, the username will be assigned to that value.
+  
+- **`spring.security.user.password=${SPRING_SECURITY_USER_PASSWORD}`**:
+  - Similar to the username, this sets the password for basic authentication based on the value of the environment variable `SPRING_SECURITY_USER_PASSWORD`.
+  - At runtime, the application will look for this environment variable and use its value as the authentication password.
+
+---
+
+### **Use Case and Benefits**
+
+1. **Environment-Specific Configuration**:
+   - Instead of hardcoding sensitive credentials like the username and password in your `application.properties` or `application.yml` files, referencing environment variables allows you to configure different credentials depending on the environment (development, staging, production).
+   - This is especially useful in **cloud** or **containerized** environments (like Docker, Kubernetes) where environment variables are a common way to pass sensitive data.
+
+2. **Security**:
+   - Storing passwords in code or configuration files can be insecure. By using environment variables, you avoid storing sensitive data in version control systems like Git, which reduces the risk of exposing passwords.
+
+---
+
+### **How Environment Variables Work with Spring Boot**
+
+When you use the placeholder syntax `${...}` in Spring Boot configuration, the application tries to resolve the value in the following order:
+1. **Environment Variables**: It first looks for system environment variables.
+2. **JVM System Properties**: If the environment variable isn’t found, it checks for system properties passed via the JVM.
+3. **Application Properties/Configuration Files**: It falls back to values defined in `application.properties` or `application.yml`.
+4. **Default Values**: If no environment variable or property is found, and no default value is provided in the configuration, the application will throw an exception at startup.
+
+---
+
+### **Examples**
+
+#### 1. **Basic Example of Configuring Username and Password**
+
+**1.1. Setting Environment Variables**:
+   In a Linux or macOS system, you can set environment variables as follows:
+
+   ```bash
+   export SPRING_SECURITY_USER_NAME=admin
+   export SPRING_SECURITY_USER_PASSWORD=adminpass
+   ```
+
+   On Windows, use:
+
+   ```bash
+   set SPRING_SECURITY_USER_NAME=admin
+   set SPRING_SECURITY_USER_PASSWORD=adminpass
+   ```
+
+**1.2. Spring Boot Configuration** (`application.properties`):
+
+```properties
+spring.security.user.name=${SPRING_SECURITY_USER_NAME}
+spring.security.user.password=${SPRING_SECURITY_USER_PASSWORD}
+```
+
+**1.3. Running the Application**:
+
+When you start your Spring Boot application, it will read the `SPRING_SECURITY_USER_NAME` and `SPRING_SECURITY_USER_PASSWORD` environment variables to set the authentication credentials.
+
+- Username: `admin`
+- Password: `adminpass`
+
+When you try to access any secured endpoint, Spring Boot will prompt for credentials. You can now log in using the username `admin` and password `adminpass`.
+
+---
+
+#### 2. **Setting Environment Variables in Docker**
+
+If you are deploying your Spring Boot application in a **Docker** container, you can pass environment variables directly when running the container:
+
+```bash
+docker run -e SPRING_SECURITY_USER_NAME=admin -e SPRING_SECURITY_USER_PASSWORD=adminpass your-image
+```
+
+- **`-e` option**: This passes environment variables into the container.
+- Inside the container, the application will resolve `${SPRING_SECURITY_USER_NAME}` and `${SPRING_SECURITY_USER_PASSWORD}` using these values.
+
+---
+
+#### 3. **Providing Default Values in Case Environment Variables are Not Set**
+
+You can provide a default value for these properties in case the environment variables are not defined. This ensures the application has a fallback in case of misconfiguration.
+
+```properties
+spring.security.user.name=${SPRING_SECURITY_USER_NAME:defaultuser}
+spring.security.user.password=${SPRING_SECURITY_USER_PASSWORD:defaultpassword}
+```
+
+In this case:
+- If the `SPRING_SECURITY_USER_NAME` environment variable is not set, Spring will default to `"defaultuser"`.
+- If the `SPRING_SECURITY_USER_PASSWORD` environment variable is not set, it will default to `"defaultpassword"`.
+
+**Example**: If you forget to set `SPRING_SECURITY_USER_NAME` and `SPRING_SECURITY_USER_PASSWORD`, the default credentials (`defaultuser` and `defaultpassword`) will be used.
+
+---
+
+### **Advanced Use Cases**
+
+#### 1. **Kubernetes Secrets**
+
+In Kubernetes, you can inject environment variables through **secrets** for even better security. Here’s how you can use Kubernetes secrets to pass credentials securely:
+
+1. **Create a Kubernetes Secret**:
+
+   ```yaml
+   apiVersion: v1
+   kind: Secret
+   metadata:
+     name: security-credentials
+   type: Opaque
+   data:
+     SPRING_SECURITY_USER_NAME: YWRtaW4=    # admin (base64 encoded)
+     SPRING_SECURITY_USER_PASSWORD: YWRtaW5wYXNz  # adminpass (base64 encoded)
+   ```
+
+2. **Inject Secret into Pod as Environment Variables**:
+
+   ```yaml
+   apiVersion: v1
+   kind: Pod
+   metadata:
+     name: spring-boot-app
+   spec:
+     containers:
+     - name: spring-boot-container
+       image: your-docker-image
+       env:
+       - name: SPRING_SECURITY_USER_NAME
+         valueFrom:
+           secretKeyRef:
+             name: security-credentials
+             key: SPRING_SECURITY_USER_NAME
+       - name: SPRING_SECURITY_USER_PASSWORD
+         valueFrom:
+           secretKeyRef:
+             name: security-credentials
+             key: SPRING_SECURITY_USER_PASSWORD
+   ```
+
+In this setup, Kubernetes will inject the secret values into the environment variables `SPRING_SECURITY_USER_NAME` and `SPRING_SECURITY_USER_PASSWORD`, and Spring Boot will use them for authentication.
+
+---
+
+#### 2. **Using Profiles for Different Environments**
+
+You can also use Spring Boot **profiles** to set different credentials for different environments, such as **dev**, **staging**, and **production**.
+
+Example:
+
+1. **application-dev.properties**:
+   ```properties
+   spring.security.user.name=devuser
+   spring.security.user.password=devpass
+   ```
+
+2. **application-prod.properties**:
+   ```properties
+   spring.security.user.name=${SPRING_SECURITY_USER_NAME}
+   spring.security.user.password=${SPRING_SECURITY_USER_PASSWORD}
+   ```
+
+You can then activate the profile depending on the environment:
+- For development, use `devuser` and `devpass`.
+- For production, use environment variables to avoid hardcoding sensitive information.
+
+---
+
+### **Summary**
+
+- **Dynamic Configuration**: By using environment variables (`${SPRING_SECURITY_USER_NAME}` and `${SPRING_SECURITY_USER_PASSWORD}`), you enable dynamic configuration of security credentials. This is useful in different environments (e.g., local, staging, production) without hardcoding sensitive values.
+- **Security**: Using environment variables to configure sensitive data (like passwords) avoids exposing sensitive data in source code or configuration files.
+- **Use Cases**: It’s ideal for cloud-based and containerized applications where environment variables are commonly used for configuration. It also integrates well with secret management tools such as Kubernetes Secrets, AWS Secrets Manager, etc.
+- **Fallback Options**: You can set default values for these environment variables in case they are not provided, making the application more resilient to configuration errors.
 ## 006 Funny memes on Security
 ## 007 What is Security & Why it is important
 ## 008 Quick introduction to Servlets & Filters
