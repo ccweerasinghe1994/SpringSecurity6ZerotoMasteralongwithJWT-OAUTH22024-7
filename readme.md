@@ -21,6 +21,8 @@
 
 ## [01 - Getting Started](./docs/01-GettingStarted/readme.md)
 ## [02 - Changing the default security configurations](./docs/02-Changingthedefaultsecurityconfigurations/readme.md)
+
+
 ## [🚫 not completed]()
 ## [🚫 not completed]()
 ## [🚫 not completed]()
