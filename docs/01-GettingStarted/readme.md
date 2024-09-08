@@ -1,4 +1,43 @@
-# 
+# 01 - Getting Started 
+
+
+- [01 - Getting Started](#01---getting-started)
+  - [001 Course Introduction](#001-course-introduction)
+  - [003 Creating a simple Spring Boot app with out security - Part 1](#003-creating-a-simple-spring-boot-app-with-out-security---part-1)
+    - [1. **Basic Project Information**](#1-basic-project-information)
+    - [2. **Parent Project: Spring Boot Starter Parent**](#2-parent-project-spring-boot-starter-parent)
+    - [3. **Project Coordinates and Metadata**](#3-project-coordinates-and-metadata)
+    - [4. **Java Version**](#4-java-version)
+    - [5. **Dependencies**](#5-dependencies)
+      - [5.1 **Spring Boot Starter Web**](#51-spring-boot-starter-web)
+      - [5.2 **Spring Boot DevTools**](#52-spring-boot-devtools)
+      - [5.3 **Spring Boot Starter Test**](#53-spring-boot-starter-test)
+    - [6. **Build Section**](#6-build-section)
+    - [Example Use Case: A Simple Spring Boot Application](#example-use-case-a-simple-spring-boot-application)
+    - [Conclusion](#conclusion)
+  - [004 Creating a simple Spring Boot app with out security - Part 2](#004-creating-a-simple-spring-boot-app-with-out-security---part-2)
+    - [1. **Controller Class**](#1-controller-class)
+    - [2. **`@GetMapping("/welcome")`**](#2-getmappingwelcome)
+    - [3. **Method: `welcome()`**](#3-method-welcome)
+    - [4. **How It Works in a Spring Boot Application**](#4-how-it-works-in-a-spring-boot-application)
+    - [5. **Example Scenarios**](#5-example-scenarios)
+      - [Example 1: Accessing the Endpoint via Web Browser](#example-1-accessing-the-endpoint-via-web-browser)
+      - [Example 2: Accessing the Endpoint via cURL (Command Line)](#example-2-accessing-the-endpoint-via-curl-command-line)
+      - [Example 3: Using Postman to Access the Endpoint](#example-3-using-postman-to-access-the-endpoint)
+    - [6. **How Spring Boot Handles the Request**](#6-how-spring-boot-handles-the-request)
+    - [7. **Expanding the Example: JSON Response**](#7-expanding-the-example-json-response)
+    - [8. **Securing the Endpoint**](#8-securing-the-endpoint)
+    - [Conclusion](#conclusion-1)
+  - [005 Securing Spring Boot basic app using Spring Security \& static credentials](#005-securing-spring-boot-basic-app-using-spring-security--static-credentials)
+  - [006 Funny memes on Security](#006-funny-memes-on-security)
+  - [007 What is Security \& Why it is important](#007-what-is-security--why-it-is-important)
+  - [008 Quick introduction to Servlets \& Filters](#008-quick-introduction-to-servlets--filters)
+  - [009 Introduction to Spring Security Internal flow - Theory](#009-introduction-to-spring-security-internal-flow---theory)
+  - [010 Demo of Spring Security internal flow - Part 1](#010-demo-of-spring-security-internal-flow---part-1)
+  - [011 Demo of Spring Security internal flow - Part 2](#011-demo-of-spring-security-internal-flow---part-2)
+  - [012 Sequence flow of the Spring Security default behaviour](#012-sequence-flow-of-the-spring-security-default-behaviour)
+  - [013 Understanding on how multiple requests work with out credentials](#013-understanding-on-how-multiple-requests-work-with-out-credentials)
+
 
 ## 001 Course Introduction
 
