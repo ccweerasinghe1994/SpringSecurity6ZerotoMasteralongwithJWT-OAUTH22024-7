@@ -735,5 +735,41 @@ This security configuration achieves the following:
 With this setup, you can secure specific areas of your web application while leaving others open for public access, providing flexibility and security.
 ## 005 How to disable formLogin and httpBasic authentication
 
+```java
+package com.wchamara.springsecurity.config;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.web.SecurityFilterChain;
+
+@Configuration
+@EnableWebSecurity
+public class ProjectSecurityConfig {
+
+
+    @Bean
+    SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
+//        http.authorizeHttpRequests((requests) -> requests.anyRequest().denyAll());
+//        http.authorizeHttpRequests((requests) -> requests.anyRequest().permitAll());
+        http.authorizeHttpRequests((requests) -> requests
+                .requestMatchers("myAccount", "myBalance", "myCards", "myLoans").authenticated()
+                .requestMatchers("notices", "welcome", "contact", "error").permitAll()
+        );
+        http.formLogin(AbstractHttpConfigurer::disable);
+        http.httpBasic(AbstractHttpConfigurer::disable);
+        return http.build();
+    }
+
+
+}
+
+```
+
+![alt text](image-4.png)
 
 ## 006 httpBasic authentication testing using postman
+![alt text](image-5.png)
+![alt text](image-6.png)
