@@ -1,13 +1,32 @@
 package com.wchamara.springsecurity;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.web.servlet.MockMvc;
+
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
+@AutoConfigureMockMvc
 class BankApplicationTests {
 
+    @Autowired
+    private MockMvc mockMvc;
+
     @Test
-    void contextLoads() {
+    @WithMockUser(username = "user")
+    void testWelcomeEndpoint_withAuthentication() throws Exception {
+        mockMvc.perform(get("/welcome")).andExpect(status().isOk());
+    }
+
+    @Test
+    void testWelcomeEndpoint_withoutAuthentication() throws Exception {
+        mockMvc.perform(get("/welcome"))
+                .andExpect(status().isUnauthorized());  // Expect 401 Unauthorized because no authentication is provided
     }
 
 }

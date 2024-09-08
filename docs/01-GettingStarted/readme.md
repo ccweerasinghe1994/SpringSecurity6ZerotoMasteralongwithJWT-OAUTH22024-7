@@ -1456,6 +1456,43 @@ You can then activate the profile depending on the environment:
 - **Security**: Using environment variables to configure sensitive data (like passwords) avoids exposing sensitive data in source code or configuration files.
 - **Use Cases**: It’s ideal for cloud-based and containerized applications where environment variables are commonly used for configuration. It also integrates well with secret management tools such as Kubernetes Secrets, AWS Secrets Manager, etc.
 - **Fallback Options**: You can set default values for these environment variables in case they are not provided, making the application more resilient to configuration errors.
+
+```java
+package com.wchamara.springsecurity;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.web.servlet.MockMvc;
+
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+@SpringBootTest
+@AutoConfigureMockMvc
+class BankApplicationTests {
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @Test
+    @WithMockUser(username = "user")
+    void testWelcomeEndpoint_withAuthentication() throws Exception {
+        mockMvc.perform(get("/welcome")).andExpect(status().isOk());
+    }
+
+    @Test
+    void testWelcomeEndpoint_withoutAuthentication() throws Exception {
+        mockMvc.perform(get("/welcome"))
+                .andExpect(status().isUnauthorized());  // Expect 401 Unauthorized because no authentication is provided
+    }
+
+}
+
+```
+
 ## 006 Funny memes on Security
 ## 007 What is Security & Why it is important
 ## 008 Quick introduction to Servlets & Filters
