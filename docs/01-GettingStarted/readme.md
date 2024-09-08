@@ -75,7 +75,81 @@
       - [2. **Using Profiles for Different Environments**](#2-using-profiles-for-different-environments)
     - [**Summary**](#summary-3)
   - [006 Funny memes on Security](#006-funny-memes-on-security)
+    - [**1. Why We Need Security**](#1-why-we-need-security)
+      - [Key Reasons We Need Security:](#key-reasons-we-need-security)
+    - [**2. Types of Security**](#2-types-of-security)
+    - [**3. Security Principles**](#3-security-principles)
+      - [**1. Defense in Depth**:](#1-defense-in-depth)
+      - [**2. Least Privilege**:](#2-least-privilege)
+      - [**3. Security by Design**:](#3-security-by-design)
+      - [**4. Fail-Safe Defaults**:](#4-fail-safe-defaults)
+      - [**5. Separation of Duties**:](#5-separation-of-duties)
+    - [**4. Common Threats and Attacks**](#4-common-threats-and-attacks)
+      - [**1. Malware**:](#1-malware)
+      - [**2. Phishing**:](#2-phishing)
+      - [**3. Man-in-the-Middle (MitM) Attack**:](#3-man-in-the-middle-mitm-attack)
+      - [**4. SQL Injection**:](#4-sql-injection)
+      - [**5. Denial of Service (DoS) and Distributed Denial of Service (DDoS)**:](#5-denial-of-service-dos-and-distributed-denial-of-service-ddos)
+    - [**5. Examples of Security in Action**](#5-examples-of-security-in-action)
+      - [**Example 1: Online Banking**](#example-1-online-banking)
+      - [**Example 2: E-Commerce Website**](#example-2-e-commerce-website)
+    - [**Conclusion**](#conclusion-2)
   - [007 What is Security \& Why it is important](#007-what-is-security--why-it-is-important)
+    - [1. **Central Metaphor: Bank as a Symbol of Security**](#1-central-metaphor-bank-as-a-symbol-of-security)
+      - [Why Banks Are Used as a Metaphor for Security:](#why-banks-are-used-as-a-metaphor-for-security)
+    - [2. **Symbols Representing Security Measures**](#2-symbols-representing-security-measures)
+    - [3. **Supporting Text in the Image**](#3-supporting-text-in-the-image)
+    - [**Real-World Examples of Security Needs**](#real-world-examples-of-security-needs)
+    - [**Conclusion**](#conclusion-3)
+    - [**1. Central Metaphor: Web Applications as Valuable Assets**](#1-central-metaphor-web-applications-as-valuable-assets)
+      - [Why Web Applications Hold Valuable Data:](#why-web-applications-hold-valuable-data)
+    - [**2. Symbols and Illustrations**](#2-symbols-and-illustrations)
+      - [**Real-World Example**:](#real-world-example)
+      - [**Importance of Protecting Databases**:](#importance-of-protecting-databases)
+      - [**How Hackers Exploit Web Application Vulnerabilities**:](#how-hackers-exploit-web-application-vulnerabilities)
+      - [**Real-World Example**:](#real-world-example-1)
+    - [**3. Importance of Web Application Security**](#3-importance-of-web-application-security)
+    - [**4. Key Measures to Secure Web Applications**](#4-key-measures-to-secure-web-applications)
+      - [**1. Implement HTTPS (TLS/SSL)**:](#1-implement-https-tlsssl)
+      - [**2. Regular Security Audits and Penetration Testing**:](#2-regular-security-audits-and-penetration-testing)
+      - [**3. Use Strong Authentication Mechanisms**:](#3-use-strong-authentication-mechanisms)
+      - [**4. Input Validation**:](#4-input-validation)
+      - [**5. Keep Software and Libraries Updated**:](#5-keep-software-and-libraries-updated)
+    - [**Conclusion**](#conclusion-4)
+    - [**1. WHAT IS SECURITY?**](#1-what-is-security)
+      - [**Example**:](#example-1)
+    - [**2. DIFFERENT TYPES OF SECURITY**](#2-different-types-of-security)
+      - [**Key Security Methods**:](#key-security-methods)
+    - [**3. SECURITY IS A NON-FUNCTIONAL REQUIREMENT**](#3-security-is-a-non-functional-requirement)
+      - [**Example**:](#example-2)
+    - [**4. WHY IS SECURITY IMPORTANT?**](#4-why-is-security-important)
+      - [**Example**:](#example-3)
+    - [**5. SECURITY FROM DEV PHASE**](#5-security-from-dev-phase)
+      - [**Example**:](#example-4)
+    - [**6. AVOIDING MOST COMMON ATTACKS**](#6-avoiding-most-common-attacks)
+      - [**Common Attacks**:](#common-attacks)
+    - [**Conclusion**](#conclusion-5)
+    - [**1. Cloud Environment**](#1-cloud-environment)
+    - [**2. Virtual Machines**](#2-virtual-machines)
+    - [**3. Operating System**](#3-operating-system)
+    - [**4. Containers**](#4-containers)
+    - [**5. Web/App Servers**](#5-webapp-servers)
+    - [**6. Web Apps/Services**](#6-web-appsservices)
+    - [**7. HTTPS**](#7-https)
+    - [**Conclusion**](#conclusion-6)
+    - [Why DevSecOps is Important](#why-devsecops-is-important)
+    - [How DevSecOps Works](#how-devsecops-works)
+      - [1. **Planning**:](#1-planning)
+      - [2. **Development**:](#2-development)
+      - [3. **Build**:](#3-build)
+      - [4. **Testing**:](#4-testing)
+      - [5. **Deployment**:](#5-deployment)
+      - [6. **Operations**:](#6-operations)
+      - [7. **Feedback and Improvement**:](#7-feedback-and-improvement)
+    - [Key Benefits of DevSecOps](#key-benefits-of-devsecops)
+    - [Tools Commonly Used in DevSecOps](#tools-commonly-used-in-devsecops)
+    - [DevSecOps Example in Practice](#devsecops-example-in-practice)
+    - [Conclusion](#conclusion-7)
   - [008 Quick introduction to Servlets \& Filters](#008-quick-introduction-to-servlets--filters)
   - [009 Introduction to Spring Security Internal flow - Theory](#009-introduction-to-spring-security-internal-flow---theory)
   - [010 Demo of Spring Security internal flow - Part 1](#010-demo-of-spring-security-internal-flow---part-1)
@@ -1494,7 +1568,664 @@ class BankApplicationTests {
 ```
 
 ## 006 Funny memes on Security
+
+![alt text](image-11.png)
+![alt text](image-12.png)
+![alt text](image-13.png)
+![alt text](image-14.png)
+![alt text](image-15.png)
+![alt text](image-16.png)
+
+**Security** refers to the measures and practices taken to protect systems, data, and information from unauthorized access, malicious attacks, theft, or damage. In the context of computing, security ensures the confidentiality, integrity, and availability of data and systems. 
+
+To understand security deeply, we must look at it from various perspectives, such as **why it's important**, **how it's implemented**, and **examples of real-world scenarios** where security measures are critical.
+
+---
+
+### **1. Why We Need Security**
+
+The need for security arises from various threats and vulnerabilities that can compromise the operation of systems, privacy, and data integrity. Without security measures, systems and applications become vulnerable to attacks, leading to various issues such as data breaches, system downtime, financial loss, and reputational damage.
+
+#### Key Reasons We Need Security:
+
+1. **Confidentiality**:
+   - Ensures that data is accessible only to authorized users or systems.
+   - Example: In an online banking system, only the account holder should be able to access their bank details, preventing unauthorized parties from accessing sensitive financial information.
+
+2. **Integrity**:
+   - Ensures that data is not altered or tampered with, either during transmission or storage.
+   - Example: In an e-commerce transaction, it is crucial that the amount of a purchase is not altered by a hacker intercepting the communication.
+
+3. **Availability**:
+   - Ensures that systems, services, and data are available and accessible to authorized users when needed.
+   - Example: A healthcare system needs to ensure that patient records are always accessible to medical staff, even in case of a denial-of-service (DoS) attack.
+
+4. **Authentication**:
+   - Ensures that only authorized users are who they claim to be by verifying their identity.
+   - Example: When logging into an email service, users must enter their credentials (username and password), which are verified by the system to allow access.
+
+5. **Authorization**:
+   - Ensures that users only have access to resources or functionalities they are allowed to use.
+   - Example: In a company, an employee may have access to internal tools, but not administrative functions like user management.
+
+6. **Non-repudiation**:
+   - Ensures that actions taken by a user or system cannot be denied later.
+   - Example: Digital signatures are used in legal contracts to ensure that the signer cannot later deny having signed the document.
+
+7. **Auditability**:
+   - Ensures that there is a way to track actions taken within a system for compliance, investigation, and accountability.
+   - Example: A logging system can track who accessed certain data and when, providing an audit trail in case of a security incident.
+
+---
+
+### **2. Types of Security**
+
+Security can be categorized into several different types, depending on what is being secured:
+
+1. **Physical Security**:
+   - Refers to the protection of physical systems (hardware, buildings, etc.) from unauthorized access.
+   - Example: Securing data centers with biometric access controls, surveillance systems, and security personnel.
+
+2. **Network Security**:
+   - Involves securing the network infrastructure from unauthorized access, attacks, and misuse.
+   - Example: Firewalls and intrusion detection systems (IDS) monitor and block unauthorized traffic to and from a network.
+
+3. **Application Security**:
+   - Focuses on securing applications from vulnerabilities such as injection attacks, cross-site scripting (XSS), and others.
+   - Example: A web application implements input validation to prevent SQL injection attacks, ensuring that malicious input doesn't alter database queries.
+
+4. **Data Security**:
+   - Involves protecting data at rest, in use, and in transit from unauthorized access, corruption, or theft.
+   - Example: Encrypting sensitive data, such as credit card information, ensures that it cannot be accessed or modified by unauthorized users.
+
+5. **Identity and Access Management (IAM)**:
+   - Manages how users are identified, authenticated, and authorized to access resources.
+   - Example: Multi-factor authentication (MFA) requires a user to provide two or more verification methods to gain access to a system, making it harder for unauthorized individuals to access the system.
+
+6. **Cloud Security**:
+   - Focuses on securing data, applications, and services hosted in the cloud.
+   - Example: Cloud services like AWS offer security features such as encryption, firewalls, and secure access management to ensure data stored in the cloud is secure.
+
+---
+
+### **3. Security Principles**
+
+To achieve effective security, several principles must be followed:
+
+#### **1. Defense in Depth**:
+   - This principle advocates for multiple layers of security controls to protect data and systems. If one layer fails, additional layers can still provide protection.
+   - Example: In a bank, security involves not only strong doors and locks but also surveillance systems, security personnel, and vaults. Similarly, in cybersecurity, a company might have firewalls, encryption, anti-virus software, and regular security audits to protect its systems.
+
+#### **2. Least Privilege**:
+   - Users or systems should only have the minimum level of access necessary to perform their tasks.
+   - Example: A database administrator may only have access to database systems, while a regular employee might only have access to their personal files and no access to critical systems.
+
+#### **3. Security by Design**:
+   - Security should be considered from the initial design stages of a system, rather than added as an afterthought.
+   - Example: When building a web application, developers should incorporate security features such as encryption and authentication mechanisms from the beginning, not as an afterthought when the app is already live.
+
+#### **4. Fail-Safe Defaults**:
+   - Systems should default to a secure state when failures occur.
+   - Example: If a network switch malfunctions, it should block all traffic until it's repaired, rather than leaving all ports open.
+
+#### **5. Separation of Duties**:
+   - This principle ensures that no single individual has control over all aspects of a system or operation.
+   - Example: In financial systems, one employee might initiate payments, while another employee is required to approve the transaction.
+
+---
+
+### **4. Common Threats and Attacks**
+
+Security is essential because there are many threats that systems can face:
+
+#### **1. Malware**:
+   - Malicious software such as viruses, worms, and ransomware can infect a system, leading to data loss, theft, or corruption.
+   - Example: Ransomware attacks encrypt an organization's data, demanding payment for the decryption key. This can lead to loss of access to critical systems and data.
+
+#### **2. Phishing**:
+   - A social engineering attack where attackers trick individuals into providing sensitive information by masquerading as legitimate entities.
+   - Example: A user receives an email that looks like it’s from their bank, asking them to click a link and enter their login credentials. The attacker then captures these credentials.
+
+#### **3. Man-in-the-Middle (MitM) Attack**:
+   - Attackers intercept and potentially alter communication between two parties without their knowledge.
+   - Example: An attacker intercepts communication between a user and a bank's website, potentially altering transaction data.
+
+#### **4. SQL Injection**:
+   - A type of attack where an attacker injects malicious SQL queries into input fields to manipulate databases.
+   - Example: A web form that does not sanitize input allows an attacker to input SQL commands that retrieve sensitive information, such as usernames and passwords.
+
+#### **5. Denial of Service (DoS) and Distributed Denial of Service (DDoS)**:
+   - Attackers overwhelm a system or network with a flood of traffic, making it unavailable to legitimate users.
+   - Example: Attackers send an overwhelming number of requests to a website, crashing the server and preventing users from accessing it.
+
+---
+
+### **5. Examples of Security in Action**
+
+#### **Example 1: Online Banking**
+- **Confidentiality**: Encryption (e.g., SSL/TLS) ensures that communication between the user’s browser and the bank’s server cannot be intercepted and read by unauthorized individuals.
+- **Integrity**: Digital signatures verify that data sent between the user and the bank has not been tampered with during transmission.
+- **Authentication**: Users must provide credentials, such as a username, password, and sometimes a second factor (like an OTP), to access their accounts.
+
+#### **Example 2: E-Commerce Website**
+- **Security by Design**: An e-commerce platform is designed with security features, including HTTPS for secure communication, input validation to prevent SQL injection, and user authentication to secure access to sensitive information (e.g., payment details).
+- **Authorization**: Customers can view their own orders, but only admins can modify the product catalog.
+
+---
+
+### **Conclusion**
+
+Security is vital in today’s digital world, where personal data, financial transactions, and critical systems are constantly at risk. By implementing robust security measures—such as encryption, authentication, and access control—organizations can protect their systems from unauthorized access, data breaches, and attacks. Additionally, adhering to security principles like **least privilege** and **defense in depth** ensures that systems remain secure even in the face of ever-evolving threats.
 ## 007 What is Security & Why it is important
+
+![alt text](image-17.png)
+
+The image you've provided gives a metaphorical representation of **security** by comparing it to how banks are protected. Let's break it down deeply:
+
+### 1. **Central Metaphor: Bank as a Symbol of Security**
+In the center of the image, there's an illustration of a bank surrounded by protective symbols, such as chains, locks, security guards, vaults, and surveillance cameras. This metaphor is a visual representation of the core idea that **security** is essential for protecting valuable assets, just like a bank does.
+
+#### Why Banks Are Used as a Metaphor for Security:
+- **Valuable Assets**: Banks store valuable assets like money, financial information, and other precious items. Similarly, in digital security, we protect **valuable data**, **systems**, and **information**.
+- **Multiple Layers of Protection**: A bank doesn't rely on just one method of protection; it uses multiple layers of defense such as vaults, alarms, cameras, guards, and more. This represents the **Defense in Depth** principle, where multiple layers of security measures are applied to protect valuable digital assets.
+
+### 2. **Symbols Representing Security Measures**
+
+- **Security Guard**:
+  - The security guard represents **physical security** in the real world. In the digital world, this translates to various forms of **access control** and **authentication mechanisms** (e.g., passwords, biometric scans, etc.).
+  - **Example**: In a system, authentication ensures that only authorized users can access certain resources, just like how a guard ensures only authorized personnel enter a bank.
+
+- **Chains and Locks**:
+  - The chain and lock symbolize **access restriction** and **control**. In a cybersecurity context, this can refer to measures like **firewalls** and **encryption**.
+  - **Example**: A firewall in a computer system acts like a lock, allowing only authorized traffic (just like a lock prevents unauthorized access).
+
+- **Vault**:
+  - The vault represents **data encryption** and **secure storage**. Just as a bank vault protects physical assets from theft, encryption protects sensitive data from unauthorized access.
+  - **Example**: Encrypting personal information, such as credit card data, ensures that even if unauthorized users gain access to the system, they cannot read or misuse the data.
+
+- **CCTV Camera**:
+  - The CCTV camera symbolizes **monitoring and surveillance**. In cybersecurity, this corresponds to **monitoring tools** like **Intrusion Detection Systems (IDS)**, which continuously watch for suspicious activity.
+  - **Example**: Just as a CCTV camera helps detect intrusions in real-time, an IDS in a computer network detects unauthorized access or suspicious behavior, allowing security teams to respond before damage occurs.
+
+- **24-Hour Surveillance Sign**:
+  - This sign emphasizes the importance of **continuous monitoring** and **proactive security measures**. In the context of cybersecurity, this can be thought of as **real-time security monitoring systems** that track user activities and system behavior around the clock.
+  - **Example**: In an e-commerce application, continuous monitoring helps ensure that attackers don't exploit vulnerabilities when security teams aren't watching. Real-time alerts can notify administrators of potential threats.
+
+### 3. **Supporting Text in the Image**
+
+- **"Have you ever observed how well banks are protected?"**
+  - This text prompts the viewer to consider the high level of security measures applied to banks. Banks use **comprehensive protection** because they store valuable assets.
+  - **Lesson for Cybersecurity**: Just as banks use multiple protective measures for high-value assets, systems storing sensitive data must employ **layers of security** to protect from various threats, both internal and external.
+
+- **"Why banks are well secured? Because they hold valuable assets inside it."**
+  - This highlights the core idea of **value-driven security**: systems and assets that are more valuable or sensitive require higher levels of security.
+  - **Application in Cybersecurity**: For example, financial institutions, healthcare providers, and government agencies hold extremely sensitive data (personal information, financial records, etc.), so they require stronger security measures such as **multi-factor authentication**, **advanced encryption**, and **intrusion detection systems**.
+
+---
+
+### **Real-World Examples of Security Needs**
+
+1. **Online Banking**:
+   - **Confidentiality**: Transactions need to be encrypted to protect users’ sensitive information (like bank account numbers and personal identification).
+   - **Authentication**: Users need to authenticate themselves using multi-factor authentication (passwords, biometrics, OTPs) to ensure the rightful account owner is accessing the service.
+   - **Real-Time Monitoring**: Banks need continuous monitoring to detect any fraudulent or unusual activities, just like CCTV surveillance.
+
+2. **E-Commerce Websites**:
+   - **Data Encryption**: Personal data like credit card information needs to be encrypted both in transit and at rest to prevent theft.
+   - **Firewall and Access Control**: Firewalls and access controls ensure that only authorized traffic (e.g., legitimate customers) can interact with the website, while unauthorized attempts are blocked.
+   - **Security Logging and Auditing**: Continuous logging of user behavior, including login attempts and transactions, helps detect and prevent fraud or data breaches.
+
+3. **Corporate Networks**:
+   - **Role-Based Access Control (RBAC)**: Employees should only have access to systems and information relevant to their role in the company. Just as banks restrict access to vaults or safes, organizations must restrict access to sensitive internal systems.
+   - **Data Backup and Recovery**: A well-secured organization will also have **data backup** systems to ensure data integrity and availability even if an attack occurs. In banks, this is similar to having duplicate records stored in secure locations.
+
+---
+
+### **Conclusion**
+
+The image uses the metaphor of a bank to illustrate why security is necessary and the multiple layers of protection needed to safeguard valuable assets. In both physical and digital contexts, security ensures that important assets—whether it's money in a bank or sensitive data in a system—are protected from theft, unauthorized access, and destruction. By employing a combination of security measures (such as encryption, monitoring, and authentication), systems can prevent, detect, and respond to various threats.
+
+In cybersecurity, as in bank security, the goal is to ensure **confidentiality**, **integrity**, and **availability** while minimizing the risk of breaches and attacks. The symbols in the image (guards, locks, chains, vaults, and cameras) serve as metaphors for the different types of cybersecurity measures that work together to protect systems and data.
+
+
+![alt text](image-18.png)
+
+The image provided explains the importance of **security in web applications** and why securing them is critical. The visual metaphor compares securing web applications to securing valuable assets in a bank and highlights the dangers of not doing so—primarily being vulnerable to hackers stealing sensitive data.
+
+Let’s break down the key elements in the image and provide detailed explanations along with practical examples.
+
+---
+
+### **1. Central Metaphor: Web Applications as Valuable Assets**
+The image draws a direct comparison between **banks** and **web applications**:
+- **Banks** hold valuable physical assets such as money, precious documents, and other financial assets.
+- **Web Applications** hold valuable **digital assets** such as user data, financial transactions, personal information, and business intelligence.
+
+This comparison is meant to highlight the idea that **just as banks need high levels of security**, web applications also need robust security measures to protect the valuable data they store and process.
+
+#### Why Web Applications Hold Valuable Data:
+- **User Information**: Personal Identifiable Information (PII) like names, addresses, and contact details.
+- **Financial Transactions**: Payment information, transaction details, and account balances.
+- **Business Data**: Internal business data, customer relationships, and sensitive communications.
+
+---
+
+### **2. Symbols and Illustrations**
+
+- **Person Thinking (on the Left)**:
+   - Represents a developer or business owner contemplating the value of their web applications and questioning whether they should secure them.
+   - **Message**: "Similar to Banks, our web apps also hold valuable data. Then why not secure them?"
+   - This emphasizes the question of why we should bother securing web applications. If banks go to great lengths to protect money, businesses should invest the same effort in securing their digital assets.
+
+#### **Real-World Example**:
+Consider a **social media platform** that stores millions of users’ personal information. This data is highly valuable not just to users, but also to attackers. If this platform isn’t secured properly, attackers can:
+- Steal user information for identity theft.
+- Sell sensitive data on the black market.
+- Use compromised accounts to launch further attacks.
+
+---
+
+- **Devices (Web Application and Database)**:
+   - The icons representing a web application (a monitor and a mobile device) and a database emphasize that the application not only holds important **front-end information** (user interfaces, login portals) but also has access to **back-end databases** where the most sensitive information is stored.
+   - The dotted line indicates a connection between the web application and a hacker, symbolizing how vulnerabilities in the web application can lead to unauthorized access by attackers.
+
+#### **Importance of Protecting Databases**:
+Many data breaches occur because of vulnerabilities in web applications that allow attackers to access the underlying databases. A **SQL injection attack**, for instance, can allow attackers to query sensitive data directly from the database if input fields are not properly secured.
+
+---
+
+- **Hacker (on the Right)**:
+   - This icon represents a malicious actor or hacker trying to gain unauthorized access to the web application and steal data.
+   - **Message**: "Don’t you think all hackers will steal the data if web app is not properly secured?"
+   - This rhetorical question suggests that failing to secure a web application is an invitation for hackers to exploit vulnerabilities and steal sensitive information.
+
+#### **How Hackers Exploit Web Application Vulnerabilities**:
+Hackers are constantly scanning the internet for insecure applications that they can exploit. Some common attack techniques include:
+- **Cross-Site Scripting (XSS)**: Injecting malicious scripts into web pages viewed by other users, allowing attackers to steal session cookies, impersonate users, or execute arbitrary code.
+- **SQL Injection**: Manipulating input fields (e.g., search boxes, login forms) to execute unauthorized database queries, which can reveal or modify data.
+- **Brute Force Attacks**: Repeatedly trying different passwords or encryption keys to gain access to accounts or systems.
+- **Man-in-the-Middle Attacks (MitM)**: Intercepting communications between a user and a web application to steal sensitive information such as login credentials or financial details.
+
+#### **Real-World Example**:
+In 2017, the **Equifax breach** exposed the personal data of 147 million people due to a vulnerability in a web application framework (Apache Struts). Attackers exploited this vulnerability to access sensitive data, including names, social security numbers, and financial records.
+
+---
+
+### **3. Importance of Web Application Security**
+
+Web applications are a key part of many businesses today, serving millions of users across the globe. However, their accessibility also makes them a primary target for attackers. Security is essential to:
+1. **Prevent Data Breaches**:
+   - Attackers often target web applications to steal user data, including passwords, credit card numbers, and other sensitive information.
+   - Example: A weak password policy on a web application could lead to hackers brute-forcing their way into user accounts.
+
+2. **Maintain User Trust**:
+   - Users expect their data to be handled securely. If a breach occurs, users lose trust in the business.
+   - Example: If an e-commerce website is hacked and user credit card information is stolen, customers may lose trust and stop using the service.
+
+3. **Comply with Regulations**:
+   - Laws such as **GDPR** and **HIPAA** require businesses to take certain security measures to protect user data. Failing to secure a web application can lead to significant fines and legal consequences.
+   - Example: A healthcare provider that fails to secure patient data could face penalties under HIPAA for not safeguarding medical records.
+
+---
+
+### **4. Key Measures to Secure Web Applications**
+
+#### **1. Implement HTTPS (TLS/SSL)**:
+   - Use HTTPS to ensure that all communication between the user and the server is encrypted. This prevents attackers from eavesdropping on or tampering with the data in transit.
+   - **Example**: E-commerce websites encrypt customer payment information during checkout to prevent it from being intercepted.
+
+#### **2. Regular Security Audits and Penetration Testing**:
+   - Conduct regular audits and penetration tests to identify and patch vulnerabilities before hackers can exploit them.
+   - **Example**: A financial services company might hire ethical hackers to perform penetration tests on their online banking system, identifying any weaknesses that could allow unauthorized access.
+
+#### **3. Use Strong Authentication Mechanisms**:
+   - Implement **multi-factor authentication (MFA)** to add an extra layer of security beyond simple usernames and passwords.
+   - **Example**: Requiring users to verify their identity through a second factor (like a text message or authentication app) prevents unauthorized access even if a password is compromised.
+
+#### **4. Input Validation**:
+   - Ensure all user inputs are validated and sanitized to prevent injection attacks such as SQL injection and XSS.
+   - **Example**: In a login form, ensure that inputs are validated to prevent malicious code from being injected into the database query.
+
+#### **5. Keep Software and Libraries Updated**:
+   - Ensure that all frameworks, libraries, and server software are kept up to date with the latest security patches.
+   - **Example**: The Equifax breach could have been prevented if the company had patched the vulnerability in the Apache Struts framework that attackers exploited.
+
+---
+
+### **Conclusion**
+
+The image effectively communicates that web applications, like banks, contain valuable assets that must be protected from attackers. Insecure web applications are vulnerable to data breaches, theft, and malicious exploitation, leading to potentially severe consequences for both businesses and users. By implementing key security measures such as HTTPS, multi-factor authentication, and regular security audits, businesses can safeguard their applications against the ever-present threat of hackers. 
+
+Just as banks invest heavily in physical security to protect assets, businesses need to invest in **cybersecurity** to protect valuable data in web applications, ensuring that their systems are safe from attackers seeking to exploit vulnerabilities.
+
+![alt text](image-19.png)
+
+The image breaks down the key aspects of **security** and why it is crucial for web applications. It touches on several fundamental topics such as different types of security, why it is important, and how security should be integrated during development. Let's explore each section of the image deeply with examples to understand the significance of security in the context of web applications.
+
+---
+
+### **1. WHAT IS SECURITY?**
+> "Security is for protecting your data and business logic inside your web applications."
+
+Security ensures that the data processed, transmitted, and stored by a web application remains protected from unauthorized access or malicious manipulation. It involves protecting sensitive information like personal user data, financial transactions, and proprietary business logic from hackers and other threats.
+
+#### **Example**:
+- A **banking application** handles users’ sensitive data, such as account numbers, balances, and transaction history. If this data isn’t secured, it could be exposed to attackers who could misuse it for financial fraud.
+- **Security measures** like encryption, firewalls, and secure authentication help ensure that sensitive data is accessed only by authorized users.
+
+---
+
+### **2. DIFFERENT TYPES OF SECURITY**
+> "Security for a web application will be implemented in different ways like using firewalls, HTTPS, SSL, Authentication, Authorization, etc."
+
+This section lists several techniques used to secure web applications. These methods work together to protect various layers of the system from potential attacks.
+
+#### **Key Security Methods**:
+- **Firewalls**: Protect the application from unauthorized network traffic. Firewalls block or permit network traffic based on security rules.
+  - **Example**: A company’s web server might block any incoming traffic that isn’t from trusted IP addresses.
+  
+- **HTTPS & SSL**: Secure communications between the client (browser) and the server by encrypting the data in transit.
+  - **Example**: An e-commerce website uses HTTPS to secure the transmission of credit card information during checkout.
+
+- **Authentication**: Ensures that only legitimate users can access the system by verifying their identity.
+  - **Example**: A user logging into a social media platform must enter a username and password (or use multi-factor authentication) to verify their identity.
+
+- **Authorization**: After authentication, authorization controls what actions the user can perform and which resources they can access.
+  - **Example**: In an organization’s internal system, an employee might have access to view their own profile, but only an HR administrator can modify employment records.
+
+---
+
+### **3. SECURITY IS A NON-FUNCTIONAL REQUIREMENT**
+> "Security is very important similar to scalability, performance, and availability. No client will specifically ask that I need security."
+
+Security is considered a **non-functional requirement (NFR)**, which means it is an underlying necessity rather than a visible feature. Although clients may not explicitly ask for security, it is expected by default, similar to other NFRs like performance and scalability.
+
+#### **Example**:
+- When building a **social networking application**, a client may specify functional requirements such as creating profiles, posting updates, and connecting with friends. While they might not explicitly request security measures, the application must protect user data from unauthorized access or breaches.
+- In the development process, security features such as **session management**, **input validation**, and **data encryption** should be integrated even though they may not be part of the functional requirements.
+
+---
+
+### **4. WHY IS SECURITY IMPORTANT?**
+> "Security doesn’t mean only losing data or money but also the brand and trust from your users which you have built over years."
+
+Security isn’t just about avoiding financial losses; it’s about protecting your brand's reputation and the trust that users have in your service. If a company experiences a data breach, the loss of user trust can be devastating and difficult to recover from.
+
+#### **Example**:
+- In 2018, **Facebook** faced a massive data breach that compromised 50 million user accounts. This breach caused significant damage to Facebook's reputation, eroded user trust, and led to legal scrutiny.
+- When users entrust a company with their data (e.g., personal details, financial records), they expect the company to protect that data. Failing to do so not only risks financial loss but also risks losing loyal customers.
+
+---
+
+### **5. SECURITY FROM DEV PHASE**
+> "Security should be considered right from the development phase itself along with business logic."
+
+Security must be an integral part of the **software development life cycle (SDLC)**, starting from the initial design phase rather than being added as an afterthought. This ensures that security flaws are minimized and that the application is built on a secure foundation.
+
+#### **Example**:
+- During the **development of an e-commerce platform**, developers should implement secure coding practices, such as validating user inputs to prevent **SQL injection** or **Cross-Site Scripting (XSS)** attacks. By considering security from the start, the system becomes more robust against these common vulnerabilities.
+- **Secure DevOps** (DevSecOps) is an approach that integrates security practices throughout the development and operations process. This includes **continuous integration/continuous deployment (CI/CD)** pipelines that automatically run security tests as part of code deployment.
+
+---
+
+### **6. AVOIDING MOST COMMON ATTACKS**
+> "Using Security we should also avoid most common security attacks like CSRF, Session Fixation, XSS, CORS, etc. inside our application."
+
+Web applications are frequently targeted by attackers using well-known attack vectors. By implementing best security practices, most of these attacks can be mitigated.
+
+#### **Common Attacks**:
+- **Cross-Site Request Forgery (CSRF)**: An attacker tricks a user into performing an unwanted action on a web application where the user is authenticated.
+  - **Example**: A user is logged into their banking website. The attacker sends the user a malicious link that, when clicked, initiates an unauthorized transfer of funds from the user’s account.
+  - **Prevention**: Use **CSRF tokens** to validate requests made by the authenticated user.
+  
+- **Session Fixation**: An attacker hijacks a user’s session by setting or guessing their session ID.
+  - **Example**: The attacker tricks the user into using a session ID that the attacker already knows, allowing the attacker to impersonate the user.
+  - **Prevention**: Regenerate session IDs after login and use secure, random session identifiers.
+  
+- **Cross-Site Scripting (XSS)**: An attacker injects malicious scripts into web pages viewed by other users.
+  - **Example**: In a comment section of a website, an attacker injects a malicious JavaScript snippet. When other users view the page, the script runs in their browsers, potentially stealing their session cookies.
+  - **Prevention**: Use input sanitization and encoding to prevent malicious scripts from being injected into the page.
+
+- **CORS (Cross-Origin Resource Sharing)**: Misconfigured CORS policies can expose web applications to attacks that bypass the same-origin policy, allowing attackers to access sensitive resources.
+  - **Prevention**: Implement strict CORS policies to ensure that only trusted domains can make requests to the web application.
+
+---
+
+### **Conclusion**
+
+The image provides an overview of the importance of security in web applications, emphasizing that it is not merely a feature but a fundamental necessity. By implementing a variety of security measures, including encryption, firewalls, authentication, and regular security checks, businesses can protect their data, maintain user trust, and safeguard their brand’s reputation.
+
+Security should be integrated throughout the development process, from design to deployment, to avoid common vulnerabilities and attacks such as CSRF, XSS, and session fixation. This ensures that the application is robust and capable of defending against the constantly evolving landscape of cyber threats. 
+
+Ultimately, **security is about more than just preventing data breaches**—it’s about preserving the trust and confidence that users place in your application and your business.
+
+![alt text](image-20.png)
+
+The image illustrates **typical security measures for an application** by visualizing multiple layers of security. These layers include everything from the cloud environment to web applications and services, showcasing how security needs to be applied at every stage. The diagram shows how security is maintained across different layers such as the cloud, virtual machines, operating systems, containers, web servers, and web applications.
+
+Let’s explore each layer deeply, with examples, to understand how they contribute to a secure application environment.
+
+---
+
+### **1. Cloud Environment**
+> **Security Measures**: Handle DDoS Attacks, Firewalls
+
+The cloud environment is the outermost layer in this model. If your application is hosted on a cloud platform (e.g., AWS, Azure, Google Cloud), you rely on the cloud provider for certain aspects of security. Cloud providers offer security features that protect infrastructure and networking.
+
+- **DDoS Protection**: Cloud providers offer tools and services to mitigate **Distributed Denial of Service (DDoS)** attacks. DDoS attacks overwhelm your network or servers with traffic, rendering your application inaccessible.
+  - **Example**: AWS provides **AWS Shield**, a service that protects applications from DDoS attacks by automatically detecting and blocking malicious traffic.
+
+- **Firewalls**: Firewalls act as the first line of defense, blocking unauthorized access while allowing legitimate traffic through. In cloud environments, firewalls can be configured at various levels (e.g., virtual private cloud level, instance level).
+  - **Example**: Google Cloud uses **VPC firewall rules** to block unauthorized access and restrict communication between cloud resources.
+
+---
+
+### **2. Virtual Machines**
+> **Security Measures**: Secure Access, Network Security
+
+In many cloud environments, applications run on **virtual machines (VMs)**. VMs must be secured to prevent unauthorized access, and network communication between VMs needs to be protected.
+
+- **Secure Access**: Access to virtual machines should be restricted using techniques like **SSH key pairs** (rather than passwords) and **multi-factor authentication (MFA)**.
+  - **Example**: Instead of allowing password-based SSH access to virtual machines, AWS EC2 instances use SSH key pairs to authenticate users securely.
+
+- **Network Security**: Securing the network layer involves configuring **virtual private clouds (VPCs)**, setting up **network firewalls**, and restricting communication between VMs using **security groups**.
+  - **Example**: In Microsoft Azure, **Network Security Groups (NSGs)** filter network traffic to and from Azure resources, allowing only specific IP addresses or ports to communicate with the VM.
+
+---
+
+### **3. Operating System**
+> **Security Measures**: Regular Updates and Patching, Antivirus & Malware Protection
+
+Operating systems (OS) running on virtual machines or containers must be secured to reduce the risk of vulnerabilities being exploited.
+
+- **Regular Updates and Patching**: Unpatched operating systems are vulnerable to exploitation. Security patches fix known vulnerabilities in the OS and need to be applied promptly.
+  - **Example**: The **WannaCry ransomware** attack in 2017 exploited a vulnerability in unpatched Windows systems, affecting over 200,000 computers. Regular patching would have mitigated this attack.
+
+- **Antivirus & Malware Protection**: Antivirus software detects and removes malicious software that may compromise the system. It is essential for preventing malware infections.
+  - **Example**: **ClamAV** is an open-source antivirus engine used to detect viruses, malware, and other threats on operating systems.
+
+---
+
+### **4. Containers**
+> **Security Measures**: Use Trusted Images, Minimize Attack Surface, Implement Container Isolation
+
+Applications running inside **containers** (e.g., Docker) must be secured to avoid introducing vulnerabilities into the system.
+
+- **Use Trusted Images**: When deploying containers, it is important to use **trusted and verified base images** to avoid introducing malware or insecure libraries.
+  - **Example**: Instead of pulling a random Docker image from the Docker Hub, it’s better to use official or signed images that come with security assurances.
+
+- **Minimize Attack Surface**: A minimal container image should contain only the essential components required to run the application. This reduces the number of potential vulnerabilities.
+  - **Example**: Using minimal base images like **Alpine Linux** ensures that only the necessary dependencies are included, reducing the attack surface.
+
+- **Implement Container Isolation**: Containers should be isolated from each other using tools like **namespaces** and **cgroups** to prevent one compromised container from affecting others.
+  - **Example**: Kubernetes implements **Pod Security Policies** to enforce security controls on containers running within the cluster, ensuring isolation between workloads.
+
+---
+
+### **5. Web/App Servers**
+> **Security Measures**: Regular Security Updates, Access Control, Web Application Firewall (WAF)
+
+Web and application servers host the business logic and services that power the web application. Securing these servers is critical as they are often exposed to the internet.
+
+- **Regular Security Updates**: Just like the operating system, web/app servers (e.g., Apache Tomcat, Nginx) need to be regularly updated to patch security vulnerabilities.
+  - **Example**: Apache Tomcat regularly releases security patches to address vulnerabilities such as **directory traversal** or **session hijacking**.
+
+- **Access Control**: Restrict access to sensitive areas of the server (e.g., configuration files) by implementing **role-based access control (RBAC)** and restricting SSH access.
+  - **Example**: SSH access to a production web server should be limited to specific users, using **RBAC** policies.
+
+- **Web Application Firewall (WAF)**: A WAF inspects and filters HTTP traffic between the web server and users, blocking malicious requests (e.g., SQL injection, XSS attacks).
+  - **Example**: **AWS WAF** provides protection against common web exploits like SQL injection and cross-site scripting by inspecting incoming web requests.
+
+---
+
+### **6. Web Apps/Services**
+> **Security Measures**: Authentication, Authorization, Protection from Exploits like CSRF, CORS
+
+At the application layer, developers need to implement security features that ensure only authorized users can access the web application and that common vulnerabilities are mitigated.
+
+- **Authentication**: Verifying the identity of users through secure login systems (e.g., password-based, OAuth2, MFA).
+  - **Example**: An e-commerce website requires users to log in with a username and password. MFA adds an extra layer of security by requiring a one-time code sent to the user’s phone.
+
+- **Authorization**: Controlling what actions authenticated users are allowed to perform within the application (e.g., role-based permissions).
+  - **Example**: In a content management system (CMS), editors can create and modify content, while only administrators can delete content or manage user accounts.
+
+- **Protection from Common Exploits**:
+  - **CSRF (Cross-Site Request Forgery)**: Prevent unauthorized commands from being executed on behalf of authenticated users by requiring **CSRF tokens**.
+    - **Example**: To prevent CSRF attacks, an online banking application adds a hidden token to each form submission, which is verified on the server side.
+  - **CORS (Cross-Origin Resource Sharing)**: Control which domains are allowed to access your web resources to prevent unauthorized cross-origin requests.
+    - **Example**: An API sets CORS headers to allow requests only from specific trusted domains, such as `https://example.com`, and block others.
+
+---
+
+### **7. HTTPS**
+> **Security Measure**: Encrypted Communication
+
+At the top-left corner of the diagram, HTTPS is illustrated as the protocol for securing communication between the web client (e.g., browser) and the web server. HTTPS uses **SSL/TLS encryption** to protect data in transit, ensuring confidentiality and integrity.
+
+- **Example**: When a user logs into a bank's website, HTTPS encrypts their username, password, and other sensitive data during transmission, preventing attackers from intercepting the information.
+
+---
+
+### **Conclusion**
+
+The image provides a comprehensive view of the security layers required to protect a modern web application. Each layer—from the cloud environment to the application itself—requires specific security measures to prevent unauthorized access, data breaches, and attacks. By implementing these security controls across different layers, organizations can reduce their attack surface and create a more resilient application infrastructure.
+
+Security is not just about protecting individual components (e.g., the application or server), but about ensuring that **all layers** are fortified, as vulnerabilities in any layer could lead to security breaches. Therefore, applying a **defense-in-depth** strategy, where multiple layers of security controls are in place, is essential for modern applications running in complex environments such as the cloud.
+
+**DevSecOps** is a development methodology that integrates **security practices** into the **DevOps** process, ensuring that security is considered at every stage of the software development lifecycle (SDLC). It is a combination of **development (Dev)**, **security (Sec)**, and **operations (Ops)**, aiming to build a culture where security is everyone's responsibility, rather than being an afterthought.
+
+Traditionally, security was often handled separately at the end of the development cycle, just before deployment. This could result in significant delays and missed vulnerabilities. In contrast, **DevSecOps** shifts security to the left, meaning security is integrated early in the development process and continuously throughout. This ensures that security vulnerabilities are addressed as soon as they are discovered, improving both the quality and security of the application.
+
+### Why DevSecOps is Important
+
+1. **Shift Left Security**:
+   - Security is applied early in the development lifecycle, during coding, building, and testing, as opposed to waiting until the final stages.
+   - This approach helps developers detect and fix security issues much earlier, reducing the cost and time associated with fixing vulnerabilities after release.
+   
+2. **Continuous Security**:
+   - In a traditional model, security testing might only happen at predefined points. In DevSecOps, security testing happens continuously as part of the DevOps pipeline.
+   - Security checks, such as static analysis, vulnerability scans, and compliance audits, are automated and integrated into the CI/CD (Continuous Integration/Continuous Deployment) pipelines.
+
+3. **Collaboration and Shared Responsibility**:
+   - DevSecOps breaks down the silos between development, security, and operations teams. Developers, security professionals, and IT operations all work together to ensure that security is baked into the entire SDLC.
+   - Everyone in the organization becomes accountable for security.
+
+4. **Automation**:
+   - A key enabler of DevSecOps is automation. Security tools and processes (such as code analysis, vulnerability scanning, configuration audits, and patch management) are automated to fit into the DevOps CI/CD pipeline.
+   - Automated security testing allows for faster feedback and reduces the risk of human error.
+
+### How DevSecOps Works
+
+DevSecOps involves a combination of **cultural change**, **automation**, and **security tools** to ensure that security is part of every phase of the development process. Below is how security is integrated into different phases of DevOps:
+
+#### 1. **Planning**:
+   - In the planning phase, security requirements are discussed alongside functional and performance requirements.
+   - **Threat modeling** may be performed to identify and mitigate potential security risks at the design stage.
+
+#### 2. **Development**:
+   - **Secure coding practices** are followed by developers to reduce vulnerabilities (e.g., input validation, proper error handling, least privilege).
+   - Developers use **Static Application Security Testing (SAST)** tools that analyze code for vulnerabilities before it's even committed to the repository.
+   - Tools like **linting** ensure the code adheres to best security practices.
+
+#### 3. **Build**:
+   - During the build phase, **automated security testing** is performed as part of the CI pipeline.
+   - **Dependency scanning tools** (e.g., Snyk, OWASP Dependency-Check) are used to ensure third-party libraries or packages do not contain known vulnerabilities.
+   - Container images (if used) are scanned to ensure there are no security flaws in base images.
+
+#### 4. **Testing**:
+   - Continuous integration processes include **dynamic application security testing (DAST)** and **fuzz testing** to simulate real-world attacks on a running application.
+   - **Security unit tests** are written to ensure that key security functions (such as authentication and authorization) work as expected.
+   
+#### 5. **Deployment**:
+   - Before deployment, security configurations are validated. This could include checking that secure protocols (like HTTPS) are enabled and misconfigurations are avoided (e.g., leaving sensitive ports open).
+   - **Infrastructure as Code (IaC)** security tools (e.g., Terraform and AWS CloudFormation) are used to ensure infrastructure configurations are secure.
+   
+#### 6. **Operations**:
+   - Once the application is live, security doesn't stop. **Continuous monitoring** tools like **Security Information and Event Management (SIEM)** systems monitor the application for potential threats.
+   - **Incident response plans** are in place to react quickly to any breaches or vulnerabilities detected post-deployment.
+   - Patching and updating are automated to ensure that both applications and infrastructure are kept up-to-date with the latest security fixes.
+
+#### 7. **Feedback and Improvement**:
+   - Feedback from security testing, monitoring, and audits is continuously looped back into the development process. 
+   - Vulnerabilities discovered in production environments are analyzed to prevent similar issues in future development.
+
+### Key Benefits of DevSecOps
+
+1. **Early Detection of Security Issues**:
+   - By integrating security early into the development process, vulnerabilities are identified sooner, reducing the cost and complexity of fixes.
+   - Security is no longer a bottleneck but a continuous process.
+
+2. **Faster Delivery**:
+   - Security testing is automated and integrated into the CI/CD pipeline, enabling faster releases without compromising security.
+   
+3. **Improved Security Posture**:
+   - The culture of shared responsibility ensures that everyone is accountable for security, reducing the likelihood of vulnerabilities slipping through.
+   
+4. **Compliance**:
+   - DevSecOps can help ensure that security controls are compliant with industry standards (e.g., PCI-DSS, HIPAA, GDPR), as security processes are enforced consistently.
+
+### Tools Commonly Used in DevSecOps
+
+- **Static Application Security Testing (SAST)**: Tools like **SonarQube**, **Checkmarx**, and **Fortify** help identify vulnerabilities in the source code before deployment.
+  
+- **Dynamic Application Security Testing (DAST)**: Tools like **OWASP ZAP**, **Burp Suite**, and **Arachni** perform tests on a running application to detect vulnerabilities such as SQL injection or cross-site scripting (XSS).
+  
+- **Container Security**: Tools like **Aqua Security**, **Anchore**, and **Twistlock** scan container images for vulnerabilities and enforce container security policies.
+
+- **Configuration Management**: Tools like **Terraform** or **Ansible** are used to enforce security best practices when provisioning infrastructure. These tools can be combined with **TFSec** or **CloudSploit** to scan Infrastructure-as-Code (IaC) for security misconfigurations.
+
+- **Vulnerability Management**: Tools like **Snyk**, **WhiteSource**, and **Black Duck** help ensure that third-party dependencies used in the application are free of known vulnerabilities.
+
+- **CI/CD Pipelines**: Tools like **Jenkins**, **GitLab CI**, **CircleCI**, and **Travis CI** can be configured to run automated security tests as part of the CI/CD pipeline.
+
+### DevSecOps Example in Practice
+
+Let's imagine a **financial technology (FinTech)** company that needs to ensure its applications remain secure throughout the development process. Here’s how DevSecOps would look in practice:
+
+1. **Development**:
+   - Developers write code following secure coding practices.
+   - SAST tools (e.g., **SonarQube**) automatically scan the code for vulnerabilities when it's committed to the repository.
+
+2. **Continuous Integration**:
+   - As part of the CI pipeline, DAST tools (e.g., **OWASP ZAP**) run automated security tests against the running application, ensuring no common vulnerabilities like XSS or SQL injection are present.
+   - Dependency checks using tools like **Snyk** are performed to ensure that any third-party libraries are free of known vulnerabilities.
+
+3. **Deployment**:
+   - Before deploying the application to production, container security tools (e.g., **Aqua Security**) scan the Docker images to ensure the base images are secure.
+   - Infrastructure as Code (IaC) security tools scan for misconfigurations that could expose the infrastructure to attacks (e.g., open ports or weak IAM permissions).
+
+4. **Monitoring and Response**:
+   - In production, security monitoring tools like **Splunk** or **ELK** stack monitor application logs and network traffic to detect any abnormal behavior, such as attempted unauthorized access or unusual API usage.
+
+5. **Feedback**:
+   - Any vulnerabilities found during production monitoring are immediately looped back to the development team for future patches, and the DevSecOps pipeline is continuously improved to address the changing threat landscape.
+
+---
+
+### Conclusion
+
+DevSecOps is a comprehensive approach to integrating security into every phase of the software development lifecycle, ensuring that applications are not only delivered quickly but are also secure from the ground up. By automating security tests, fostering collaboration between development, security, and operations teams, and ensuring continuous monitoring, DevSecOps enables organizations to reduce risks while maintaining agility and speed in their software development processes.
+
 ## 008 Quick introduction to Servlets & Filters
 ## 009 Introduction to Spring Security Internal flow - Theory
 ## 010 Demo of Spring Security internal flow - Part 1
