@@ -1,0 +1,22 @@
+version: '3.8'  # This specifies the version of Docker Compose, 3.8 is compatible with the latest versions.
+
+services:
+  mysql:
+    image: mysql:latest  # Pulls the latest version of MySQL.
+    container_name: springsecurity
+    environment:
+      MYSQL_ROOT_PASSWORD: root  # Root password for MySQL.
+      MYSQL_DATABASE: bankdb     # The database that will be created.
+    ports:
+      - "3306:3306"  # Exposes MySQL on port 3306 to the host.
+    volumes:
+      - mysql_data:/var/lib/mysql  # Persists MySQL data even if the container is destroyed.
+    networks:
+      - springsecurity-network
+
+volumes:
+  mysql_data:  # Volume to persist data.
+
+networks:
+  springsecurity-network:
+    driver: bridge  # Creates an isolated network for the MySQL container.
