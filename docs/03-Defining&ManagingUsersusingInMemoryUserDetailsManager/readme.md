@@ -213,12 +213,222 @@ This is a typical setup for simple applications or testing environments, where u
 ![alt text](image.png)
 ## 002 Configuring PasswordEncoder using PasswordEncoderFactories
 ```java
+package com.wchamara.springsecurity.config;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.factory.PasswordEncoderFactories;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import org.springframework.security.web.SecurityFilterChain;
+
+@Configuration
+@EnableWebSecurity
+public class ProjectSecurityConfig {
+
+
+    @Bean
+    SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
+//        http.authorizeHttpRequests((requests) -> requests.anyRequest().denyAll());
+//        http.authorizeHttpRequests((requests) -> requests.anyRequest().permitAll());
+        http.authorizeHttpRequests((requests) -> requests
+                .requestMatchers("myAccount", "myBalance", "myCards", "myLoans").authenticated()
+                .requestMatchers("notices", "welcome", "contact", "error").permitAll()
+        );
+        http.formLogin(Customizer.withDefaults());
+        http.httpBasic(Customizer.withDefaults());
+//        http.formLogin(AbstractHttpConfigurer::disable);
+//        http.httpBasic(AbstractHttpConfigurer::disable);
+        return http.build();
+    }
+
+    @Bean
+    public UserDetailsService userDetailsService() {
+        UserDetails user = User.withUsername("user").password("{noop}password").authorities("read").build();
+        UserDetails admin = User.withUsername("admin").password("{bcrypt}$2y$14$nwzTHZGwOOO7t9Eei0K00eBebzkhc4WHGh9UBgef5.F5PxtB7gnsK").authorities("admin").build();
+
+        return new InMemoryUserDetailsManager(user, admin);
+
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return PasswordEncoderFactories.createDelegatingPasswordEncoder();
+    }
+
+
+}
 
 ```
+In the provided code, we have two key components to explain:
+
+1. **UserDetailsService**: This manages user credentials and authorities in memory.
+2. **PasswordEncoder**: This is responsible for encoding passwords and verifying password matches during authentication.
+
+Let’s break down each part of the code deeply with examples.
+
+---
+
+### **1. UserDetailsService and User Definitions**
+
+The **`UserDetailsService`** defines two users (`user` and `admin`) in memory, each with specific roles (authorities) and passwords.
 
 ```java
+@Bean
+public UserDetailsService userDetailsService() {
+    UserDetails user = User.withUsername("user").password("{noop}password").authorities("read").build();
+    UserDetails admin = User.withUsername("admin").password("{bcrypt}$2y$14$nwzTHZGwOOO7t9Eei0K00eBebzkhc4WHGh9UBgef5.F5PxtB7gnsK").authorities("admin").build();
 
+    return new InMemoryUserDetailsManager(user, admin);
+}
 ```
+
+#### **Explanation of the Users**:
+
+1. **UserDetails for `user`**:
+   - Username: `"user"`
+   - Password: `"password"` (stored without encryption using `{noop}`)
+   - Authority: `"read"`
+
+   This user has minimal privileges and is only assigned the `"read"` authority. The password is stored in plaintext (due to the `{noop}` prefix). In real-world applications, this is not recommended, but it is useful for development or demo purposes.
+
+   ```java
+   UserDetails user = User.withUsername("user").password("{noop}password").authorities("read").build();
+   ```
+
+2. **UserDetails for `admin`**:
+   - Username: `"admin"`
+   - Password: A **bcrypt-encoded** password (`$2y$14$nwzTHZGwOOO7t9Eei0K00eBebzkhc4WHGh9UBgef5.F5PxtB7gnsK`)
+   - Authority: `"admin"`
+
+   This user has a more privileged role, assigned the `"admin"` authority. The password is **bcrypt-encoded**, meaning it has been hashed using the bcrypt algorithm, which is a secure, industry-standard algorithm for storing passwords. The password is more secure than the one for the `user` since it's encoded.
+
+   ```java
+   UserDetails admin = User.withUsername("admin").password("{bcrypt}$2y$14$nwzTHZGwOOO7t9Eei0K00eBebzkhc4WHGh9UBgef5.F5PxtB7gnsK").authorities("admin").build();
+   ```
+
+   - **`$2y$14$`** indicates the use of bcrypt with a cost factor of 14. This cost factor increases the computational complexity of encoding and verifying passwords, improving security by making brute-force attacks more difficult.
+   - The rest of the string (`nwzTHZ...`) is the hashed version of the original password (let's assume the plaintext password was something like `54321` before hashing).
+
+#### **Authorities**:
+
+The users are assigned **authorities**, which represent permissions or roles in the system:
+
+- `"read"`: This could be used to grant read-only access to specific resources or endpoints.
+- `"admin"`: This could provide full administrative access to all resources.
+
+**Example of How Authorities Are Used**:
+- If your application has different routes for admin and general users, Spring Security will enforce these roles when users access various endpoints.
+  - A user with the `"read"` role may only be able to access resources that involve viewing information.
+  - An admin with the `"admin"` role will likely have broader access to all resources, including those requiring administrative control.
+
+---
+
+### **2. Password Encoding with PasswordEncoder**
+
+```java
+@Bean
+public PasswordEncoder passwordEncoder() {
+    return PasswordEncoderFactories.createDelegatingPasswordEncoder();
+}
+```
+
+#### **What is Password Encoding?**
+
+Password encoding is the process of transforming a plaintext password into a more secure, non-reversible format using cryptographic algorithms (like bcrypt, PBKDF2, etc.).
+
+- **Why Password Encoding?** Passwords should never be stored in plaintext for security reasons. If a database is compromised, an attacker could retrieve the plaintext passwords. Encoding adds an extra layer of protection by storing a hashed version of the password, which is difficult to reverse-engineer.
+
+#### **PasswordEncoderFactories.createDelegatingPasswordEncoder()**
+
+This line creates a **delegating password encoder**. The delegating password encoder allows for different password encoding strategies, such as bcrypt, noop (no encoding), PBKDF2, etc.
+
+- **Delegating**: It means that the encoder can handle multiple types of password encodings, and it will automatically delegate the encoding process to the appropriate encoder based on the prefix (like `{bcrypt}`, `{noop}`, etc.).
+- **Prefixes**: Each password is stored with a prefix that indicates the encoding type, so Spring Security knows how to verify the password when a user tries to log in.
+
+##### **Example Password Prefixes**:
+
+- **`{bcrypt}`**: Indicates that the password is stored using bcrypt encoding.
+- **`{noop}`**: No encoding is applied (i.e., plaintext password).
+- **`{pbkdf2}`**: Indicates PBKDF2 encoding.
+- **`{argon2}`**: Indicates Argon2 encoding.
+
+**How Does This Work in Practice?**
+- When Spring Security verifies a user’s password during login, it looks at the prefix to determine which password encoder to use.
+  - If the password starts with `{noop}`, it compares the plaintext password directly.
+  - If the password starts with `{bcrypt}`, it uses the bcrypt algorithm to verify the password.
+  
+```java
+UserDetails admin = User.withUsername("admin").password("{bcrypt}$2y$14$nwzTHZGwOOO7t9Eei0K00eBebzkhc4WHGh9UBgef5.F5PxtB7gnsK").authorities("admin").build();
+```
+
+Here, Spring Security will use bcrypt to decode and verify the password for the `admin` user.
+
+---
+
+### **Example of How Password Encoding Works**
+
+#### **User Authentication Flow**:
+
+1. A user tries to log in with their credentials (username and password).
+2. Spring Security retrieves the stored user details (username, password, authorities) from the `InMemoryUserDetailsManager`.
+3. Spring Security checks the **password prefix** (e.g., `{noop}`, `{bcrypt}`):
+   - If `{noop}`, it compares the raw (plaintext) password.
+   - If `{bcrypt}`, it applies the bcrypt algorithm to the provided password and compares it to the stored hash.
+4. If the passwords match, the user is authenticated and granted the appropriate authorities (e.g., `"read"` for a general user or `"admin"` for an admin).
+
+#### **Flow Example**:
+
+- **User login as `user`**:
+   - Username: `user`
+   - Password: `password`
+
+   Since the password is stored with `{noop}` (i.e., no encoding), Spring Security directly compares the provided password `"password"` with the stored password.
+
+```http
+POST /login
+{
+  "username": "user",
+  "password": "password"
+}
+```
+
+If the credentials match, the user is authenticated and given access.
+
+---
+
+- **User login as `admin`**:
+   - Username: `admin`
+   - Password: (let’s assume it was `54321` before encoding with bcrypt)
+
+   Spring Security uses the bcrypt encoder to hash the provided password (`54321`) and compares it with the stored hash `$2y$14$nwzTHZ...`. If they match, the user is authenticated.
+
+```http
+POST /login
+{
+  "username": "admin",
+  "password": "54321"
+}
+```
+
+---
+
+### **Summary**
+
+- **`UserDetailsService`**: Manages users (`user` and `admin`) stored in memory. The `user` has a plain-text password (using `{noop}`), while the `admin` has a bcrypt-encoded password (using `{bcrypt}`). The users are granted authorities based on their roles (`read` for `user`, `admin` for `admin`).
+  
+- **Password Encoding**: The `PasswordEncoder` ensures that passwords are stored securely using a delegating mechanism. It can handle different types of password encodings (like bcrypt, noop, etc.), and Spring Security uses the encoding prefix (e.g., `{noop}`, `{bcrypt}`) to determine how to verify passwords during login.
+
+This configuration ensures that even though one user’s password is stored in plaintext (`noop`), the other user (`admin`) has a more secure bcrypt-encoded password. This demonstrates how Spring Security can handle different password encoding strategies while ensuring authentication security.
+
+![alt text](image-1.png)
+
 ## 003 Demo of CompromisedPasswordChecker
 
 
