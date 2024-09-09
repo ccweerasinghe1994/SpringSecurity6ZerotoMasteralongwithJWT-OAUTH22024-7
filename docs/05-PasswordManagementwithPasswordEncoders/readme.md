@@ -157,7 +157,59 @@
       - [d) **Implement Multi-Factor Authentication (MFA)**](#d-implement-multi-factor-authentication-mfa)
     - [6. **Conclusion**](#6-conclusion-1)
   - [007 How to overcome Hashing drawbacks, Brute force and Dictionary table attacks](#007-how-to-overcome-hashing-drawbacks-brute-force-and-dictionary-table-attacks)
+    - [1. **Problems with Simple Hashing Mechanisms**](#1-problems-with-simple-hashing-mechanisms)
+      - [a) **Brute Force Attacks**](#a-brute-force-attacks)
+      - [b) **Rainbow Table or Dictionary Table Attacks**](#b-rainbow-table-or-dictionary-table-attacks)
+    - [2. **What is a Brute Force Attack?**](#2-what-is-a-brute-force-attack)
+    - [3. **What is a Rainbow Table Attack?**](#3-what-is-a-rainbow-table-attack)
+      - [How to Mitigate These Attacks](#how-to-mitigate-these-attacks)
+    - [4. **Mitigating Brute Force and Rainbow Table Attacks**](#4-mitigating-brute-force-and-rainbow-table-attacks)
+      - [a) **Salting Passwords**](#a-salting-passwords)
+      - [b) **Use Slow Hashing Algorithms (bcrypt, PBKDF2, Argon2)**](#b-use-slow-hashing-algorithms-bcrypt-pbkdf2-argon2)
+      - [c) **Enforce Strong Password Policies**](#c-enforce-strong-password-policies)
+      - [d) **Use Multi-Factor Authentication (MFA)**](#d-use-multi-factor-authentication-mfa)
+    - [5. **Conclusion**](#5-conclusion)
+    - [1. **Salting Passwords to Prevent Rainbow Table Attacks**](#1-salting-passwords-to-prevent-rainbow-table-attacks)
+      - [a) **What is a Salt?**](#a-what-is-a-salt)
+      - [b) **Protection from Rainbow Table Attacks**](#b-protection-from-rainbow-table-attacks)
+      - [c) **Salting in Practice**](#c-salting-in-practice)
+    - [2. **Using Slow Hashing Algorithms to Defeat Brute Force Attacks**](#2-using-slow-hashing-algorithms-to-defeat-brute-force-attacks)
+      - [a) **Slow Hashing Algorithms**](#a-slow-hashing-algorithms)
+      - [b) **How It Slows Down Brute Force Attacks**](#b-how-it-slows-down-brute-force-attacks)
+      - [c) **Memory and CPU Costs**](#c-memory-and-cpu-costs)
+      - [d) **Spring Security and Password Hashing**](#d-spring-security-and-password-hashing)
+    - [3. **How Slow Hashing Algorithms Work in Practice**](#3-how-slow-hashing-algorithms-work-in-practice)
+    - [4. **Conclusion**](#4-conclusion)
+      - [Key Takeaways:](#key-takeaways)
   - [008 Introduction to PasswordEncoders in Spring Security](#008-introduction-to-passwordencoders-in-spring-security)
+    - [1. **User Enters Credentials**](#1-user-enters-credentials)
+    - [2. **Password Hashing**](#2-password-hashing)
+    - [3. **Retrieve Stored Hash from Database**](#3-retrieve-stored-hash-from-database)
+    - [4. **Comparing Hash Values**](#4-comparing-hash-values)
+      - [**Why Hashing is Secure:**](#why-hashing-is-secure)
+    - [5. **Login Success or Failure**](#5-login-success-or-failure)
+    - [Example of the Entire Process:](#example-of-the-entire-process)
+      - [a) **User Registration**:](#a-user-registration)
+      - [b) **User Login**:](#b-user-login)
+      - [c) **Login with Wrong Password**:](#c-login-with-wrong-password)
+    - [6. **Why Hashing and PasswordEncoders are Essential**](#6-why-hashing-and-passwordencoders-are-essential)
+      - [a) **Storing Plain-Text Passwords is Dangerous**:](#a-storing-plain-text-passwords-is-dangerous)
+      - [b) **Hashing Protects Passwords**:](#b-hashing-protects-passwords)
+      - [c) **PasswordEncoders Add Security Features**:](#c-passwordencoders-add-security-features)
+    - [7. **Conclusion**](#7-conclusion-1)
+    - [1. **PasswordEncoder Interface**](#1-passwordencoder-interface)
+      - [a) **`encode(CharSequence rawPassword)`**](#a-encodecharsequence-rawpassword)
+      - [b) **`matches(CharSequence rawPassword, String encodedPassword)`**](#b-matchescharsequence-rawpassword-string-encodedpassword)
+      - [c) **`upgradeEncoding(String encodedPassword)`**](#c-upgradeencodingstring-encodedpassword)
+    - [2. **Different Implementations of PasswordEncoder**](#2-different-implementations-of-passwordencoder)
+      - [a) **NoOpPasswordEncoder**](#a-nooppasswordencoder)
+      - [b) **BCryptPasswordEncoder**](#b-bcryptpasswordencoder)
+      - [c) **StandardPasswordEncoder (SHA-256)**](#c-standardpasswordencoder-sha-256)
+      - [d) **SCryptPasswordEncoder**](#d-scryptpasswordencoder)
+      - [e) **PBKDF2PasswordEncoder**](#e-pbkdf2passwordencoder)
+      - [f) **Argon2PasswordEncoder**](#f-argon2passwordencoder)
+    - [3. **How to Choose the Right PasswordEncoder**](#3-how-to-choose-the-right-passwordencoder)
+    - [4. **Conclusion**](#4-conclusion-1)
   - [009 Deep dive of PasswordEncoder implementation classes](#009-deep-dive-of-passwordencoder-implementation-classes)
   - [010 Demo of registration and login with Bcrypt password encoder](#010-demo-of-registration-and-login-with-bcrypt-password-encoder)
 
@@ -1393,6 +1445,500 @@ To further enhance security, implement MFA so that users are required to provide
 
 The hashing process shown in the image highlights both the advantages and limitations of storing hashed passwords. While hashing passwords provides better security than storing them in plain text, the use of weak or common passwords, as well as the lack of salt, can still expose a system to attacks. To ensure stronger security, passwords should be hashed with salt using algorithms designed specifically for password storage (like bcrypt or Argon2). Moreover, encouraging strong password creation and implementing additional security layers, such as multi-factor authentication, can greatly reduce the risk of unauthorized access.
 ## 007 How to overcome Hashing drawbacks, Brute force and Dictionary table attacks
+
+![alt text](image-12.png)
+The image explains the problems associated with **simple hashing mechanisms** for password management, specifically highlighting the vulnerabilities to **brute force attacks** and **rainbow table attacks**. Let's go through these concepts step by step to understand them deeply, along with real-world examples.
+
+### 1. **Problems with Simple Hashing Mechanisms**
+
+Hashing passwords improves security compared to storing plain-text passwords, but it has limitations, particularly when simple hashing mechanisms are used without additional security measures like **salting** or using a slow hashing algorithm like **bcrypt**. Two primary concerns are raised in the image:
+
+#### a) **Brute Force Attacks**
+
+If an attacker gains access to the hashed passwords stored in a database, they can launch a brute force attack by systematically trying every possible password, hashing each one, and checking if the resulting hash matches any of the hashes in the database.
+
+- **How It Works**:
+  - The attacker starts with a list of possible passwords (e.g., all possible combinations of letters and numbers).
+  - For each password, the attacker hashes the password and compares the result to the stored hash.
+  - This process continues until a match is found, revealing the original password.
+  
+- **Example**:
+  - Suppose an attacker gets access to a hashed password like this:
+    ```
+    5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5
+    ```
+  - They can try hashing common passwords, such as `12345`, `password123`, etc., and eventually find that the hash for `12345` matches the stored hash.
+  - Now they know that the original password was `12345`.
+
+- **Why Hash Functions Are Vulnerable**:
+  - Most simple hashing functions (like SHA-256) are designed to be **fast**, which means an attacker can try thousands or millions of passwords per second during a brute force attack.
+
+#### b) **Rainbow Table or Dictionary Table Attacks**
+
+A **rainbow table attack** is another method for cracking hashed passwords. Instead of trying every possible password and hashing it (like in a brute force attack), attackers use precomputed tables of password hashes (called **rainbow tables**). These tables contain the hashes for common passwords and their corresponding plain-text versions.
+
+- **How It Works**:
+  - Attackers precompute the hashes for a large list of common passwords or dictionary words.
+  - When they obtain a hashed password, they can quickly look it up in the table to find the corresponding plain-text password, without needing to hash each password in real-time.
+
+- **Example**:
+  - Suppose an attacker has a rainbow table that contains hashes for common passwords like:
+    - `12345 -> 5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5`
+    - `password -> 5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8`
+  - If the attacker finds that a user’s stored hash matches one of these precomputed hashes, they immediately know the original password without needing to compute the hash themselves.
+
+- **Efficiency**:
+  - Rainbow tables reduce the computational resources required to crack passwords. Instead of computing the hash for each password on the fly, attackers can simply look up the hash in the precomputed table, which significantly speeds up the attack.
+
+### 2. **What is a Brute Force Attack?**
+
+A **brute force attack** is a trial-and-error method where the attacker tries every possible combination of characters until they find the correct password. 
+
+- **Analogy**: Think of a brute force attack as trying every possible key on a lock until you find the one that fits.
+  
+- **Real-World Example**:
+  - Let’s say you have a password consisting of only 5 lowercase letters. The total number of possible combinations is `26^5`, or about 11.8 million possibilities.
+  - In a brute force attack, an attacker would try each combination (e.g., `aaaaa`, `aaaab`, `aaaac`, etc.) until the correct password is found. 
+  - If the hash function is fast, an attacker can try millions of passwords per second using modern hardware, making it feasible to crack short or weak passwords quickly.
+
+- **Challenges with Brute Force**:
+  - The longer and more complex the password, the harder it is to brute-force. For example, a password with 12 characters, including letters, numbers, and symbols, has an astronomical number of possibilities, making brute force attacks impractical.
+
+### 3. **What is a Rainbow Table Attack?**
+
+A **rainbow table attack** involves using a precomputed table of password hashes to crack hashed passwords. The main advantage of a rainbow table attack is that it **reduces the time** needed to crack passwords by skipping the hash computation step.
+
+- **How It Works**:
+  - Rainbow tables contain common passwords and their corresponding hashes. For example:
+    ```
+    Password: 12345 -> Hash: 5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5
+    Password: password -> Hash: 5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8
+    ```
+  - If an attacker gets a hold of a database with hashed passwords, they can look up the hashes in their rainbow table to find the matching plain-text password.
+  - This method is faster than brute-forcing because the hash has already been computed.
+
+- **Efficiency**:
+  - **Rainbow tables** are especially effective against weak passwords that use common words or patterns.
+  - They are less effective when strong passwords are used or when passwords are salted.
+
+#### How to Mitigate These Attacks
+
+There are several ways to mitigate the risks posed by brute force and rainbow table attacks:
+
+### 4. **Mitigating Brute Force and Rainbow Table Attacks**
+
+#### a) **Salting Passwords**
+
+**Salting** involves adding a unique, random value (called a **salt**) to each password before hashing it. The salt ensures that even if two users have the same password, their hash values will be different.
+
+- **How It Works**:
+  - When a user registers, a random salt is generated and combined with the password. For example:
+    - Password: `12345`
+    - Salt: `randomSalt1`
+    - Hash: Hash(`12345randomSalt1`) = `differentHash`
+  - The salt is stored alongside the hash in the database.
+  - During login, the same salt is used to hash the entered password and check it against the stored hash.
+
+- **Why It Helps**:
+  - Salting defeats rainbow table attacks because precomputed tables don’t include the salt, making it impossible for attackers to find the correct password in the table.
+  - It also prevents attackers from identifying users with the same password (as their hash values will be different due to the salt).
+
+#### b) **Use Slow Hashing Algorithms (bcrypt, PBKDF2, Argon2)**
+
+**Slow hashing algorithms** are specifically designed to slow down brute force attacks by making the hashing process more computationally expensive.
+
+- **bcrypt** and **Argon2** are popular slow hashing algorithms used for password storage. They allow you to adjust the "work factor" or number of iterations, increasing the time it takes to compute the hash.
+  
+- **How It Helps**:
+  - Slowing down the hashing process means that even if an attacker tries to brute-force the password, they can only try a limited number of passwords per second, making the attack much less effective.
+
+#### c) **Enforce Strong Password Policies**
+
+Encouraging or enforcing the use of **strong passwords** (long, complex, and unique) makes brute force attacks impractical.
+
+- **Example**:
+  - A password like `#u4%Jz!&k21x` is much more secure than `12345` or `password`. It has more characters, includes symbols and numbers, and is not a commonly used password.
+  
+- **Why It Helps**:
+  - A strong password greatly increases the number of possible combinations, making both brute force and rainbow table attacks more difficult.
+
+#### d) **Use Multi-Factor Authentication (MFA)**
+
+Even if a password is compromised, **Multi-Factor Authentication (MFA)** adds an additional layer of security. MFA requires users to provide something they **know** (password) and something they **have** (like a phone for a one-time code).
+
+- **Why It Helps**:
+  - Even if an attacker cracks a password, they will still need access to the second factor (such as a code from a mobile app) to log in, adding a significant barrier to unauthorized access.
+
+### 5. **Conclusion**
+
+The image highlights the weaknesses of relying on simple hashing mechanisms for password security. Attacks like brute force and rainbow tables exploit these weaknesses, especially when users choose weak passwords. To mitigate these risks, we can apply techniques like **salting**, using **slow hashing algorithms** (e.g., bcrypt or Argon2), enforcing **strong password policies**, and adding **multi-factor authentication**. These practices significantly improve password security by making it harder for attackers to crack hashed passwords, even if they gain access to the database.
+
+![alt text](image-13.png)
+
+The image provides a detailed explanation of how to enhance password security by overcoming the vulnerabilities of brute force attacks and rainbow table attacks. It introduces two key concepts: **salting passwords** and using **slow password hashing algorithms**. Let’s explore each of these methods in depth, with examples.
+
+### 1. **Salting Passwords to Prevent Rainbow Table Attacks**
+
+Rainbow table attacks rely on precomputed hash values for common passwords. A **rainbow table** is a large dataset that contains hashes of many common passwords, allowing attackers to quickly look up a hash to find the corresponding password. **Salting** is a method used to prevent these attacks by making each password unique, even if multiple users choose the same password.
+
+#### a) **What is a Salt?**
+
+A **salt** is a random value that is generated for each user and added to the password before hashing. The salt is stored alongside the hash in the database. Even if two users have the same password, their hashes will be different because the salt is unique for each user.
+
+- **How It Works**:
+  - **Input**: A user chooses a password (e.g., `password123`).
+  - **Salt Generation**: The system generates a random salt (e.g., `randomSalt123`).
+  - **Hashing**: The password and salt are combined and then hashed. For example:
+    ```
+    Hash(password123 + randomSalt123) = 5d41402abc4b2a76b9719d911017c592
+    ```
+  - **Stored Data**: The hash and salt are both stored in the database:
+    ```
+    Hash: 5d41402abc4b2a76b9719d911017c592
+    Salt: randomSalt123
+    ```
+
+#### b) **Protection from Rainbow Table Attacks**
+
+Since each password is hashed with a unique salt, even if attackers have access to a precomputed rainbow table of hashes, it will be useless unless they also have the specific salt for each user. This makes it infeasible for attackers to crack passwords using rainbow tables.
+
+- **Example**:
+  - Two users, `alice` and `bob`, both use the password `password123`.
+  - Without salting, their hash would be the same, making it easy for attackers to identify users with the same password.
+  - However, with salting, `alice` gets a salt `abc123`, and `bob` gets a salt `xyz456`. The hashes are now:
+    - `alice`: `Hash(password123 + abc123)`
+    - `bob`: `Hash(password123 + xyz456)`
+  - Even though `alice` and `bob` have the same password, their hashes will be completely different due to the unique salts.
+
+#### c) **Salting in Practice**
+
+Salts are often stored with the hashed password in the database. During the login process, the salt is retrieved, added to the entered password, and the resulting value is hashed again. If the new hash matches the stored hash, the user is authenticated.
+
+- **Benefit**: This technique ensures that even if two users share the same password, their stored hashes will be different, and precomputed rainbow tables will not be effective.
+
+### 2. **Using Slow Hashing Algorithms to Defeat Brute Force Attacks**
+
+Brute force attacks involve systematically trying every possible password until the correct one is found. Since many hashing algorithms (like SHA-256) are designed to be fast, attackers can test millions of passwords per second. To mitigate this risk, we use **slow hashing algorithms**, which increase the time required to hash each password, making brute force attacks impractical.
+
+#### a) **Slow Hashing Algorithms**
+
+Slow hashing algorithms, such as **PBKDF2**, **bcrypt**, **scrypt**, and **Argon2**, are specifically designed to introduce computational delays, making brute-force attacks much more difficult.
+
+- **PBKDF2 (Password-Based Key Derivation Function 2)**: This algorithm applies a hash function multiple times (often thousands or more) to slow down the hashing process. Each iteration adds computational work, making it more resource-intensive to try multiple passwords.
+  
+- **bcrypt**: This algorithm automatically adds a salt and incorporates a cost factor, which controls how slow the hashing process is. The higher the cost factor, the more iterations it runs, increasing the time to compute the hash.
+
+- **scrypt**: This algorithm is memory-hard, meaning it requires a large amount of memory to compute each hash. This makes it especially difficult for attackers to use specialized hardware (like GPUs or ASICs) for fast password cracking.
+
+- **Argon2**: This is the latest in slow hashing algorithms and was specifically designed to be resistant to brute force attacks. It combines both memory-hard and computationally hard properties.
+
+#### b) **How It Slows Down Brute Force Attacks**
+
+With fast hashing algorithms, attackers can attempt millions of password guesses per second. Slow hashing algorithms, on the other hand, make each password hashing operation take significantly longer. This exponentially increases the amount of time and resources required to crack a password.
+
+- **Example**:
+  - Suppose hashing a password using SHA-256 takes 0.001 seconds. An attacker with a powerful machine could attempt millions of guesses per second.
+  - If bcrypt is used with a high cost factor, hashing each password might take 1 second. This means that an attacker can only attempt one guess per second, making brute force attacks impractical.
+
+#### c) **Memory and CPU Costs**
+
+These algorithms not only slow down the process but also increase memory and CPU requirements. By using more resources, attackers need to invest more in hardware to attempt brute force attacks, making them less feasible.
+
+#### d) **Spring Security and Password Hashing**
+
+As mentioned in the image, **Spring Security** provides industry-recommended **PasswordEncoders** that generate random salts and leverage password hashing algorithms like **bcrypt**. This allows developers to easily implement secure password storage mechanisms by using strong, industry-standard encryption methods.
+
+### 3. **How Slow Hashing Algorithms Work in Practice**
+
+Let’s consider an example of using **bcrypt** for password hashing:
+
+1. **User Chooses a Password**: The user selects a password (e.g., `MySecurePassword123`).
+  
+2. **Salt Generation and Hashing**:
+   - Bcrypt generates a random salt and hashes the password along with the salt.
+   - The cost factor is set (e.g., 12), which determines the number of iterations. A higher cost factor makes hashing slower.
+   
+3. **Stored Data**:
+   - The resulting hash and the salt are stored in the database.
+   - Each time a user logs in, the system retrieves the salt, hashes the entered password with it, and compares the resulting hash to the stored hash.
+   
+4. **Attack Resistance**:
+   - Because bcrypt is slow, attackers trying to brute force passwords will need significantly more time and computational power to try each password, making brute force attacks unfeasible.
+
+### 4. **Conclusion**
+
+The image explains how **salting passwords** and using **slow hashing algorithms** can significantly improve password security. By adding a unique random salt to each password, we protect against rainbow table attacks. Using slow hashing algorithms like **bcrypt**, **PBKDF2**, **scrypt**, or **Argon2** ensures that brute force attacks become computationally expensive and impractical.
+
+#### Key Takeaways:
+- **Salting** ensures that even if two users have the same password, their hashes will be unique, making rainbow table attacks ineffective.
+- **Slow hashing algorithms** increase the time and resources needed to crack passwords, deterring brute force attacks.
+- **Spring Security** offers built-in support for secure password hashing, making it easy to implement best practices for password management.
+
+By following these practices, we can build robust systems that protect user passwords and prevent attackers from easily compromising them.
+
+
 ## 008 Introduction to PasswordEncoders in Spring Security
+
+![alt text](image-14.png)
+
+The image shows a typical process for validating passwords using **hashing** and **password encoders**, which is a recommended approach for securely handling passwords in production systems. Let’s go through each step involved in the password validation process with detailed explanations and examples.
+
+### 1. **User Enters Credentials**
+
+When a user tries to log in, they provide their **username** and **password**. In the example shown:
+
+- **Username**: `admin`
+- **Password**: `12345`
+
+These credentials are entered in a login form and sent to the server for validation.
+
+### 2. **Password Hashing**
+
+Once the user submits the credentials, the system takes the entered password (`12345`) and applies a **hashing algorithm** to it. The hashing algorithm transforms the password into a fixed-length string of characters (a hash). The hashed password is a unique value that represents the original password but cannot be reversed to recover the original password.
+
+- **Hashing Algorithm**: This could be **bcrypt**, **PBKDF2**, or another secure hashing algorithm.
+- **Example**: If bcrypt is used to hash the password `12345`, the resulting hash might look something like this:
+  ```
+  g22h.........bef
+  ```
+  This hash value is unique to the input password and the specific hashing algorithm used.
+
+### 3. **Retrieve Stored Hash from Database**
+
+The system retrieves the **stored hash** for the user from the database. When the user first registered or last updated their password, the system hashed their password and stored the hash in the database.
+
+- **Example**: If the password `12345` was hashed with bcrypt when the user registered, the database contains a hash that looks like:
+  ```
+  g22h.........bef
+  ```
+
+### 4. **Comparing Hash Values**
+
+The system compares the **hash of the entered password** (computed in step 2) with the **stored hash** (retrieved from the database in step 3). This comparison is essential because we never store or compare the original password — only the hashed versions.
+
+- If the hash of the entered password matches the stored hash, the system knows that the entered password is correct, and the user is authenticated.
+- If the hash values do **not** match, the system knows the password is incorrect, and login fails.
+
+#### **Why Hashing is Secure:**
+- **Irreversibility**: Hashing algorithms are one-way functions. Once a password is hashed, it cannot be "unhashed" to recover the original password. This ensures that even if an attacker gains access to the database, they cannot easily retrieve the original passwords.
+- **Hash Comparison**: Since the system compares hashes (instead of the original passwords), an attacker would need to guess the exact password that produces the same hash, which is computationally difficult.
+
+### 5. **Login Success or Failure**
+
+Based on the result of the hash comparison:
+
+- If the hash of the entered password matches the stored hash, the login is **successful**, and the user is granted access.
+- If the hash values do not match, the login **fails**, and the user is denied access.
+
+### Example of the Entire Process:
+
+Let’s walk through a real-world example of how this process works.
+
+#### a) **User Registration**:
+1. A new user, `admin`, registers with the password `12345`.
+2. The system hashes the password using bcrypt, generating a hash like:
+   ```
+   g22h.........bef
+   ```
+3. The system stores this hash in the database along with the user’s other information.
+
+#### b) **User Login**:
+1. The user `admin` enters their username and password (`12345`) to log in.
+2. The system hashes the entered password (`12345`) using the same bcrypt algorithm. The hash generated will be:
+   ```
+   g22h.........bef
+   ```
+3. The system retrieves the stored hash for the user `admin` from the database:
+   ```
+   g22h.........bef
+   ```
+4. The system compares the two hash values:
+   ```
+   Entered hash: g22h.........bef
+   Stored hash:  g22h.........bef
+   ```
+5. Since the hashes match, the system confirms that the entered password is correct, and the user is authenticated.
+
+#### c) **Login with Wrong Password**:
+1. If the user mistakenly enters `123456` instead of `12345`, the system hashes `123456` using bcrypt, which might produce a different hash:
+   ```
+   k98j.........zyx
+   ```
+2. The system compares the hash of `123456` with the stored hash for the password `12345`:
+   ```
+   Entered hash: k98j.........zyx
+   Stored hash:  g22h.........bef
+   ```
+3. Since the hashes do not match, the login fails, and the user is denied access.
+
+### 6. **Why Hashing and PasswordEncoders are Essential**
+
+The image emphasizes the importance of using hashing algorithms and password encoders, such as those provided by **Spring Security**, for managing passwords in production systems. Here's why:
+
+#### a) **Storing Plain-Text Passwords is Dangerous**:
+Storing passwords in plain text is highly insecure. If an attacker gains access to the database, they can see the passwords directly and use them to log in or access other services.
+
+#### b) **Hashing Protects Passwords**:
+Hashing ensures that even if attackers gain access to the hashed passwords, they cannot easily recover the original passwords. This is because hash functions are one-way and computationally hard to reverse.
+
+#### c) **PasswordEncoders Add Security Features**:
+In Spring Security, **PasswordEncoders** provide built-in methods to securely hash passwords using algorithms like bcrypt. They also automatically handle salting and allow for configuration of the hashing strength.
+
+### 7. **Conclusion**
+
+The image illustrates the secure process of **password validation** using hashing and password encoders. By hashing passwords before storing them and only comparing hash values during login, the system ensures that user passwords remain protected, even if the database is compromised. This process is a fundamental security practice in web applications, and the use of industry-recommended hashing algorithms (like bcrypt) is essential for maintaining the confidentiality and integrity of user passwords.
+
+![alt text](image-15.png)
+
+The image provides an overview of the **PasswordEncoder** interface in **Spring Security** and the different implementations of password encoders available. The **PasswordEncoder** interface defines methods for password hashing and validation, and Spring Security offers multiple implementations to suit various security needs. Let's break it down step by step, along with examples and use cases.
+
+### 1. **PasswordEncoder Interface**
+
+The **PasswordEncoder** interface in Spring Security is designed to handle the encoding (hashing) of passwords and checking if a raw password matches the encoded (hashed) version. It defines three core methods:
+
+#### a) **`encode(CharSequence rawPassword)`**
+This method is responsible for **hashing** a plain-text password.
+
+- **Parameters**: 
+  - `rawPassword`: The plain-text password input by the user (e.g., `password123`).
+  
+- **Returns**: 
+  - A **hashed** version of the password as a `String`.
+
+- **Example**:
+  ```java
+  PasswordEncoder encoder = new BCryptPasswordEncoder();
+  String hashedPassword = encoder.encode("password123");
+  System.out.println(hashedPassword); // Output: $2a$10$...
+  ```
+  In this example, the bcrypt encoder hashes the password `password123` and returns a bcrypt hash string (which might start with `$2a$`).
+
+#### b) **`matches(CharSequence rawPassword, String encodedPassword)`**
+This method checks whether a raw password matches the hashed password stored in the database.
+
+- **Parameters**:
+  - `rawPassword`: The plain-text password provided by the user (e.g., `password123`).
+  - `encodedPassword`: The hashed password stored in the database (e.g., `$2a$10$...`).
+
+- **Returns**: 
+  - A **boolean** indicating whether the raw password, when hashed, matches the stored hash.
+
+- **Example**:
+  ```java
+  PasswordEncoder encoder = new BCryptPasswordEncoder();
+  String storedPasswordHash = "$2a$10$...";
+  boolean matches = encoder.matches("password123", storedPasswordHash);
+  System.out.println(matches); // Output: true if it matches, false otherwise
+  ```
+  In this example, the method hashes `password123` and compares it to the stored bcrypt hash.
+
+#### c) **`upgradeEncoding(String encodedPassword)`**
+This optional method is used to determine if the encoding algorithm used for a password is considered **outdated** and needs to be upgraded.
+
+- **Parameters**:
+  - `encodedPassword`: The current hashed password.
+
+- **Returns**: 
+  - A **boolean** indicating whether the password encoding should be upgraded.
+
+- **Default Implementation**: In the default implementation, this method returns `false`, meaning that upgrading is not necessary unless explicitly implemented.
+
+- **Example Use Case**:
+  If an application originally used an older, weaker hash algorithm (e.g., MD5) and now uses a stronger algorithm like bcrypt, this method can trigger rehashing of passwords to a more secure algorithm when users log in.
+
+### 2. **Different Implementations of PasswordEncoder**
+
+Spring Security provides several implementations of the **PasswordEncoder** interface, each with its own hashing algorithm and properties. Here are the main implementations, along with their recommended use cases:
+
+#### a) **NoOpPasswordEncoder**
+- **Description**: This encoder performs **no encoding** at all. It stores and compares passwords as plain text.
+- **Use Case**: **Not recommended for production**. This is only for testing or development purposes, as storing plain-text passwords is insecure.
+  
+- **Example**:
+  ```java
+  PasswordEncoder encoder = NoOpPasswordEncoder.getInstance();
+  String plainPassword = "password123";
+  System.out.println(encoder.encode(plainPassword)); // Output: password123
+  ```
+
+#### b) **BCryptPasswordEncoder**
+- **Description**: **BCrypt** is one of the most widely used hashing algorithms for password storage. It automatically adds a **salt** and allows configuration of the **strength** or **cost factor** (the number of hash iterations).
+- **Use Case**: Highly recommended for production systems due to its robustness against brute force and rainbow table attacks.
+
+- **Example**:
+  ```java
+  PasswordEncoder encoder = new BCryptPasswordEncoder();
+  String hashedPassword = encoder.encode("password123");
+  System.out.println(hashedPassword); // Output: $2a$10$...
+  ```
+
+- **Strength**: The `10` in `$2a$10$` indicates the cost factor. The higher the cost, the longer the hash takes to compute, increasing security against brute force attacks.
+
+#### c) **StandardPasswordEncoder (SHA-256)**
+- **Description**: This encoder uses the **SHA-256** hashing algorithm. SHA-256 is a secure hash function, but it does not automatically salt passwords, which reduces its security in comparison to bcrypt or Argon2.
+- **Use Case**: **Not recommended for production** due to the lack of automatic salting. It may be used for legacy systems.
+
+- **Example**:
+  ```java
+  PasswordEncoder encoder = new StandardPasswordEncoder();
+  String hashedPassword = encoder.encode("password123");
+  System.out.println(hashedPassword);
+  ```
+
+#### d) **SCryptPasswordEncoder**
+- **Description**: **SCrypt** is a password-based key derivation function. It is memory-intensive, meaning it requires significant memory resources in addition to CPU time, making it highly resistant to hardware-accelerated attacks (e.g., those using GPUs).
+- **Use Case**: Suitable for production when a high level of security is needed and memory-hardness is desired.
+
+- **Example**:
+  ```java
+  PasswordEncoder encoder = new SCryptPasswordEncoder();
+  String hashedPassword = encoder.encode("password123");
+  System.out.println(hashedPassword);
+  ```
+
+#### e) **PBKDF2PasswordEncoder**
+- **Description**: **PBKDF2** stands for Password-Based Key Derivation Function 2. It uses key stretching to make the password hashing slower and more secure against brute force attacks. It’s another recommended algorithm for secure password storage.
+- **Use Case**: Suitable for production when key stretching is required. Widely used in many security protocols.
+
+- **Example**:
+  ```java
+  PasswordEncoder encoder = new Pbkdf2PasswordEncoder();
+  String hashedPassword = encoder.encode("password123");
+  System.out.println(hashedPassword);
+  ```
+
+#### f) **Argon2PasswordEncoder**
+- **Description**: **Argon2** is the winner of the Password Hashing Competition (PHC). It is the latest, most advanced password hashing algorithm and provides a balance between security, memory usage, and speed.
+- **Use Case**: Highly recommended for production systems that need state-of-the-art security.
+
+- **Example**:
+  ```java
+  PasswordEncoder encoder = new Argon2PasswordEncoder();
+  String hashedPassword = encoder.encode("password123");
+  System.out.println(hashedPassword);
+  ```
+
+### 3. **How to Choose the Right PasswordEncoder**
+
+Choosing the right **PasswordEncoder** depends on your application's security requirements:
+
+- **For Production**: 
+  - Use **BCryptPasswordEncoder**, **SCryptPasswordEncoder**, or **Argon2PasswordEncoder**. These provide strong hashing mechanisms and are widely recommended for securing passwords.
+  - Avoid using **NoOpPasswordEncoder** or **StandardPasswordEncoder** as they lack sufficient security measures (e.g., salting or computational hardness).
+
+- **For Legacy Systems**: 
+  - If you are migrating an old system that previously used SHA-256 or MD5, consider using **PBKDF2PasswordEncoder** to upgrade security while maintaining compatibility with existing password storage formats.
+
+- **For Maximum Security**: 
+  - Use **Argon2PasswordEncoder** or **SCryptPasswordEncoder**, as these are designed to withstand advanced attacks using both high computational and memory resources.
+
+### 4. **Conclusion**
+
+The **PasswordEncoder** interface in Spring Security is a critical tool for securely handling passwords in modern web applications. It abstracts away the complexity of password hashing, validation, and upgrading of hashing algorithms, making it easy to implement secure password storage.
+
+By using strong algorithms like **BCrypt**, **SCrypt**, **Argon2**, or **PBKDF2**, you can ensure that user passwords are stored securely, minimizing the risk of compromise through brute force, rainbow table, or other types of attacks.
+
+Understanding how each encoder works and selecting the right one for your security needs is essential for building robust, secure systems.
+
 ## 009 Deep dive of PasswordEncoder implementation classes
 ## 010 Demo of registration and login with Bcrypt password encoder
