@@ -379,6 +379,97 @@ When managing user passwords, systems typically follow this workflow:
 Each process has its own purpose in securing data, and understanding when to use each is critical for maintaining privacy and security in software systems.
 
 ![alt text](image-2.png)
+
+The diagram illustrates the process of **Encoding** and **Decoding**, showing how data is transformed from **plain text** into an **encoded format** and then back into **plain text** through decoding. Encoding is used to ensure data is in a suitable format for transmission or storage. Let’s explore this concept in-depth with examples.
+
+### 1. **What is Encoding?**
+
+**Encoding** is the process of converting data from one form to another. It is not designed to be secure but is used for purposes like compatibility, transmission, or storage. The key characteristic of encoding is that it is **reversible**—you can always decode the data back to its original form.
+
+- **Key Characteristics**:
+  - **Reversible**: The original data can be retrieved with the appropriate decoding algorithm.
+  - **Purpose**: Typically used to ensure that data is safely transmitted or stored without being altered. 
+  - **Not for Security**: Encoding is not meant for encryption or securing sensitive data.
+  
+- **Examples of Encoding**:
+  - **ASCII (American Standard Code for Information Interchange)**: Translates characters into numeric codes. For example, the letter "A" is represented by the number `65`.
+  - **Base64**: Commonly used to encode binary data, such as images, into a text-based format for transmission over text-based protocols like HTTP. For example, the string `"hello"` would be encoded in Base64 as `"aGVsbG8="`.
+  - **URL Encoding**: Used to encode URLs so they can be safely transmitted over the internet. Special characters (such as spaces or punctuation) are replaced by a percent sign followed by two hexadecimal digits. For example, a space is encoded as `%20`.
+
+### 2. **The Encoding Process**
+
+The diagram depicts the following flow:
+
+1. **Plain Text (Original Data)**: 
+   - This is the original form of the data before encoding. It could be a string of characters, binary data, or any form of raw data.
+   
+2. **Encoding**: 
+   - This process converts the plain text into an encoded format (or encoded text). The type of encoding algorithm (e.g., Base64, ASCII) determines how the data is transformed. The purpose is to make the data suitable for specific purposes, such as transmission over text-based protocols or ensuring it is stored in a standardized format.
+
+   **Example**:
+   - If you have a binary image that needs to be transmitted as part of an HTTP message, encoding it in Base64 makes it readable in text form, like this:
+     - Original Image Data: `Binary data`
+     - Base64 Encoded: `iVBORw0KGgoAAAANSUhEUgAAAOEAA...`
+     
+3. **Encoded Text**: 
+   - This is the result of the encoding process. It is a transformed representation of the original data but remains in a format that is reversible through decoding.
+   
+   **Example**: 
+   - Base64 encoding of the word `hello` would give you the encoded output: `"aGVsbG8="`.
+
+### 3. **What is Decoding?**
+
+**Decoding** is the reverse process of encoding. It converts the encoded data back into its original form. As long as the same encoding algorithm is used, decoding will perfectly retrieve the original data.
+
+- **Key Characteristics**:
+  - **Reversible**: The data is returned to its original form after decoding.
+  - **Requirements**: The same algorithm that was used for encoding must be used for decoding.
+
+### 4. **The Decoding Process**
+
+1. **Encoded Text**: 
+   - This is the data in its encoded form. It cannot be interpreted in its original meaning until it is decoded back to plain text.
+
+2. **Decoding**:
+   - Decoding takes the encoded data and applies the reverse algorithm to return it to its original form. 
+
+   **Example**:
+   - The Base64 string `"aGVsbG8="` can be decoded back into the plain text `"hello"`.
+   
+3. **Plain Text (Original Data)**:
+   - This is the output after decoding, which matches the original input before encoding.
+
+### 5. **Real-World Examples**
+
+#### a) **Base64 Encoding in Emails**
+
+When sending attachments in emails, Base64 encoding is used to encode binary files (such as images) into text format. Email protocols like SMTP are text-based, so converting binary files into Base64 ensures that they can be safely transmitted.
+
+- **Original Data**: A binary image file.
+- **Encoding**: The image file is encoded into Base64 format.
+- **Decoding**: The recipient's email client decodes the Base64 back into the original image so that it can be displayed.
+
+#### b) **URL Encoding**
+
+Web browsers use URL encoding to convert characters in a URL that may otherwise be misinterpreted by web servers. For example, spaces in URLs are encoded as `%20`.
+
+- **Original URL**: `https://example.com/my file.html`
+- **Encoded URL**: `https://example.com/my%20file.html`
+- **Decoded URL**: A web server decodes the `%20` back to a space to process the URL correctly.
+
+#### c) **Encoding Data for Transmission**
+
+Data that includes special or binary characters may need to be encoded to ensure it can be transmitted safely over networks. For example, JSON Web Tokens (JWT) are encoded in Base64 to ensure they are safely transmitted over HTTP.
+
+- **Original JWT**: `{"alg": "HS256", "typ": "JWT"}`
+- **Encoded JWT**: `eyJhbGciOiAiSFMyNTYiLCAidHlwIjogIkpXVCJ9`
+- **Decoded JWT**: The encoded JWT is decoded back into its original form when it's received on the server for validation.
+
+### 6. **Conclusion**
+
+The diagram summarizes the process of **encoding** and **decoding** by showing how plain text (or any raw data) is transformed into an encoded format and then back into its original form. While encoding ensures that data can be transmitted or stored in a suitable format, it does not provide security or confidentiality, unlike encryption or hashing. For secure data storage or transmission, encryption should be used instead of encoding. 
+
+Encoding is purely for compatibility and data integrity, where the goal is to ensure that the data can be safely transmitted, displayed, or interpreted by various systems and devices.
 ## 003 What is Encryption, Decryption & why it is not suitable for passwords management
 ## 004 Demo of Encryption, Decryption
 ## 005 Introduction to Hashing
