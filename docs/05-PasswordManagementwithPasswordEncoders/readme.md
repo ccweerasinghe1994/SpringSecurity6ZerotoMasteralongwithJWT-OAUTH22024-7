@@ -273,6 +273,112 @@ However, in a **production environment**, using a secure password encoding mecha
 By using `NoOpPasswordEncoder`, you expose sensitive data (passwords) to a variety of security risks, and this practice is explicitly discouraged in real-world applications.
 
 ## 002 What is Encoding, Decoding & why it is not suitable for passwords management
+
+![alt text](image-1.png)
+
+The diagram presents a comparison between **Encoding**, **Encryption**, and **Hashing**—three distinct methods of processing data, each serving a unique purpose in the context of data privacy and security. Below is a deep explanation of each method, along with real-world examples, highlighting when and why these processes are used.
+
+### 1. **Encoding**
+
+- **Definition**: Encoding is the process of converting data from one format to another for the purpose of interoperability, storage, or transmission. It is not designed for security purposes and does not involve cryptographic techniques.
+
+- **Purpose**: Encoding ensures that data is transformed into a format that can be understood by different systems (computers, software, or devices). The key point is that encoding is **reversible**—anyone with the proper decoder can retrieve the original data.
+
+- **How it Works**:
+  - A set of rules (or algorithms) is applied to transform the original data into a specific format.
+  - Since encoding is not a security measure, the encoded data can be easily converted back to its original form without any special key or secret.
+
+- **Examples**:
+  - **ASCII (American Standard Code for Information Interchange)**: Transforms characters into numeric codes. For example, the letter "A" is represented by the number 65.
+  - **Base64 Encoding**: Commonly used to encode binary data, such as images, so they can be transmitted over text-based protocols like HTTP. For instance, an image file can be encoded as Base64 to be embedded in HTML or XML.
+    - Example: The string `"hello"` becomes `"aGVsbG8="` in Base64 encoding.
+  - **UNICODE**: A standardized system to encode text in different languages and symbols. It assigns a unique code point to every character in the world’s writing systems.
+
+- **Reversibility**: Because encoding is meant for data transformation and not security, it is completely reversible. The original data can be retrieved as long as you have the correct decoding method.
+
+- **Use Case**: Encoding is commonly used in data transmission or storage where data needs to be transformed into a format compatible with different systems. For example:
+  - Encoding an image in Base64 for transmission over an HTTP request.
+  - Encoding URL parameters to ensure they are safely transmitted in a URL (URL encoding).
+
+### 2. **Encryption**
+
+- **Definition**: Encryption is the process of transforming data (plaintext) into an unreadable form (ciphertext) to ensure **confidentiality**. It relies on cryptographic techniques and involves a **key**. The goal is to ensure that only authorized parties with the correct key can decrypt and read the original data.
+
+- **Purpose**: Encryption guarantees that sensitive data remains confidential. Even if someone intercepts the encrypted data, they cannot understand it without the decryption key.
+
+- **How it Works**:
+  - Data (plaintext) is encrypted using an encryption algorithm (such as AES, RSA) and a **key** (a secret shared between the sender and receiver or known only to the data owner).
+  - The encrypted data (ciphertext) can only be decrypted back into plaintext by someone who possesses the correct decryption key.
+
+- **Examples**:
+  - **AES (Advanced Encryption Standard)**: A symmetric encryption algorithm used for securing sensitive data. For example, encrypting the string `"hello"` with AES would produce a ciphertext such as `"8N3yZTxsXGhtDSYz="`.
+  - **RSA Encryption**: An asymmetric encryption algorithm that uses a pair of keys (public and private). Data encrypted with a public key can only be decrypted by the corresponding private key.
+    - Example: A website might encrypt sensitive data such as credit card numbers using RSA encryption before transmitting it over the internet.
+
+- **Reversibility**: Encryption is **reversible** as long as the decryption key is available. The original data can be restored by decrypting the ciphertext with the appropriate key.
+
+- **Use Case**: Encryption is widely used to protect sensitive data such as:
+  - **Banking**: Encrypting transaction data so only authorized users can access it.
+  - **Communication**: Encrypting messages sent through messaging apps (e.g., WhatsApp) to ensure only the intended recipient can read them.
+  - **Storage**: Encrypting files on a hard drive to protect them in case the device is stolen.
+
+- **Security Warning**: If the key is compromised, the encrypted data is no longer secure.
+
+### 3. **Hashing**
+
+- **Definition**: Hashing is a process that converts data into a fixed-size hash value (digest) using a hashing algorithm. Unlike encoding or encryption, **hashing is not reversible**—you cannot retrieve the original data from the hash value.
+
+- **Purpose**: Hashing is used to ensure **data integrity**. It allows systems to verify that data has not been altered by comparing hash values, without needing to reveal the original data.
+
+- **How it Works**:
+  - A hashing algorithm (such as SHA-256, MD5) takes an input (of any length) and produces a fixed-length output (hash).
+  - The same input will always produce the same hash, but even a small change in the input will result in a completely different hash.
+
+- **Examples**:
+  - **SHA-256 (Secure Hash Algorithm 256-bit)**: Often used in blockchain and digital certificates. It converts any input into a 256-bit hash value.
+    - Example: The string `"hello"` might be hashed into something like `"2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"`.
+  - **MD5 (Message Digest Algorithm)**: Though it’s now considered insecure, it was commonly used for checksums to verify file integrity.
+    - Example: An MD5 hash of a file can be compared before and after transmission to ensure it hasn’t been tampered with.
+
+- **Reversibility**: Hashing is a **one-way** process—once data is hashed, it cannot be reversed to its original form. This makes it ideal for storing sensitive data like passwords. Instead of storing the password, you store the hash, and during login, you hash the entered password and compare it with the stored hash.
+
+- **Use Case**:
+  - **Password Storage**: Instead of storing plain-text passwords, systems store hashed passwords. When a user logs in, the entered password is hashed and compared with the stored hash.
+    - Example: A user’s password `"password123"` might be hashed and stored as `"ef92b779c0001fc10f2de6058e4340a7"`. When the user logs in, the system hashes the entered password and compares it to this value.
+  - **File Integrity Verification**: When downloading large files, the publisher might provide a hash value (checksum). After downloading, you can hash the file and compare it with the provided hash to ensure that the file hasn’t been corrupted.
+
+### Key Differences
+
+- **Reversibility**:
+  - **Encoding** is reversible (e.g., decoding a Base64-encoded image).
+  - **Encryption** is reversible (if you have the key).
+  - **Hashing** is not reversible.
+
+- **Use Case**:
+  - **Encoding** is for interoperability, not security. Example: encoding data to be safely transmitted over HTTP.
+  - **Encryption** is for confidentiality. Example: encrypting credit card data during online transactions.
+  - **Hashing** is for data integrity. Example: ensuring that a downloaded file has not been tampered with by comparing hashes.
+
+### Practical Example: Password Management in Applications
+
+When managing user passwords, systems typically follow this workflow:
+
+1. **Hashing (Security Best Practice)**: Instead of storing a password as plain text, the system hashes the password (e.g., using bcrypt or SHA-256) and stores the hash. When a user logs in, the system hashes the input and compares it with the stored hash.
+   - If the hashes match, authentication succeeds.
+   
+2. **Encryption (Sensitive Data)**: If the application needs to store sensitive data (like user credit card numbers), it encrypts the data using a symmetric or asymmetric algorithm. Only authorized entities can decrypt and access the data using the encryption key.
+
+3. **Encoding (Data Transmission)**: If the data needs to be transmitted over networks, it might be encoded (e.g., Base64 encoding) to ensure it is in a format that can be safely transmitted over protocols like HTTP.
+
+### Conclusion
+
+- **Encoding** is about data transformation for compatibility and transmission.
+- **Encryption** ensures confidentiality by converting plaintext into ciphertext using a key.
+- **Hashing** ensures integrity by creating a non-reversible fixed-length digest of the original data.
+
+Each process has its own purpose in securing data, and understanding when to use each is critical for maintaining privacy and security in software systems.
+
+![alt text](image-2.png)
 ## 003 What is Encryption, Decryption & why it is not suitable for passwords management
 ## 004 Demo of Encryption, Decryption
 ## 005 Introduction to Hashing
