@@ -1059,7 +1059,340 @@ Spring Security, when integrated with your database through `JdbcUserDetailsMana
 
 ## 006 Creating JPA Entity and repository classes for new table
 
+The Maven dependency for Lombok with the `annotationProcessor` scope is used in Java projects to enable annotation processing, which is essential for generating code at compile-time. Let's break down the specific elements of this dependency and explain its function.
 
+### Lombok Dependency Breakdown
+
+```xml
+<dependency>
+    <groupId>org.projectlombok</groupId>
+    <artifactId>lombok</artifactId>
+    <scope>annotationProcessor</scope>
+</dependency>
+```
+
+- **`<groupId>`**: `org.projectlombok`
+  - This specifies the group or organization that maintains the Lombok library. In this case, it's "Project Lombok."
+  
+- **`<artifactId>`**: `lombok`
+  - This specifies the specific artifact, or library, you're importing from the group. In this case, it's the Lombok library.
+  
+- **`<scope>`: `annotationProcessor`**
+  - This is the most crucial part of the dependency configuration. By setting the scope to `annotationProcessor`, you are instructing Maven to use Lombok only during the compile phase of the project. 
+  - Lombok's annotations like `@Data`, `@Getter`, `@Setter`, `@NoArgsConstructor`, etc., generate code (such as methods and constructors) at compile-time. Lombok uses a feature called *annotation processing* to generate this code.
+
+### What is `annotationProcessor`?
+
+In Java, **annotation processing** is a mechanism that allows libraries (like Lombok) to interact with Java’s compiler. It lets tools process annotations (like `@Data`, `@Getter`, etc.) and generate new code based on these annotations during the compile phase, without having to write it manually.
+
+By setting the scope as `annotationProcessor`, Lombok will only act as an annotation processor, generating code for you at compile time. The scope ensures that Lombok doesn’t become part of your final packaged code (e.g., JAR, WAR), reducing unnecessary overhead.
+
+### How It Works:
+
+When you use a Lombok annotation like `@Data` in a Java class, here's what happens:
+
+1. **You write the class**:
+
+    ```java
+    import lombok.Data;
+
+    @Data
+    public class Customer {
+        private String name;
+        private String email;
+    }
+    ```
+
+2. **Compile-time code generation**:
+    - When you compile your project, Lombok processes the annotations on the class (like `@Data`), and at compile time, it generates the corresponding code.
+    - For `@Data`, Lombok generates the following code for you:
+    
+    ```java
+    public class Customer {
+        private String name;
+        private String email;
+
+        // Generated constructor
+        public Customer() {}
+
+        // Generated getter for name
+        public String getName() {
+            return name;
+        }
+
+        // Generated setter for name
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        // Generated getter for email
+        public String getEmail() {
+            return email;
+        }
+
+        // Generated setter for email
+        public void setEmail(String email) {
+            this.email = email;
+        }
+
+        // Generated equals, hashCode, and toString methods
+    }
+    ```
+
+3. **The developer sees the final compiled result**:
+   - You don't have to manually write the getters, setters, constructors, `toString()`, `equals()`, and `hashCode()` methods. Lombok handles this behind the scenes and adds these methods to the compiled `.class` file.
+   
+4. **Code remains clean and concise**:
+   - Your Java code remains clean and concise without boilerplate, but the compiled code includes the generated methods.
+
+### Example: Without Lombok vs. With Lombok
+
+#### Without Lombok:
+
+If you were to write a simple class without Lombok, you might do something like this:
+
+```java
+public class Customer {
+    private String name;
+    private String email;
+
+    // Constructor
+    public Customer(String name, String email) {
+        this.name = name;
+        this.email = email;
+    }
+
+    // Getters and Setters
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    // toString Method
+    @Override
+    public String toString() {
+        return "Customer{name='" + name + "', email='" + email + "'}";
+    }
+
+    // hashCode and equals methods
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Customer customer = (Customer) o;
+
+        if (!name.equals(customer.name)) return false;
+        return email.equals(customer.email);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = name.hashCode();
+        result = 31 * result + email.hashCode();
+        return result;
+    }
+}
+```
+
+This results in **a lot of boilerplate code**—getters, setters, constructors, `toString()`, `equals()`, and `hashCode()`—which makes the code longer and harder to maintain.
+
+#### With Lombok:
+
+With Lombok, you can drastically reduce the boilerplate:
+
+```java
+import lombok.Data;
+
+@Data
+public class Customer {
+    private String name;
+    private String email;
+}
+```
+
+- The `@Data` annotation will automatically generate all the methods that were written manually in the "without Lombok" example, leaving the class much cleaner and easier to read.
+
+### Why Use the `annotationProcessor` Scope?
+
+The `annotationProcessor` scope ensures that Lombok is used **only** during the compile phase for code generation. This has the following benefits:
+
+1. **No Lombok in the Runtime Classpath**:
+   - Since Lombok is used only at compile time, it doesn't need to be present in the final JAR/WAR file. This reduces the size of the packaged application and avoids any potential dependency issues in runtime environments.
+   
+2. **Faster Compilation**:
+   - By limiting Lombok to annotation processing, Maven optimizes the build process, ensuring that Lombok annotations are processed only when necessary (during compilation).
+
+3. **Better IDE Support**:
+   - IDEs like IntelliJ IDEA or Eclipse will use Lombok during compilation, and many IDEs have plugins for Lombok that allow them to recognize the generated code, helping with features like autocompletion and refactoring.
+   
+### Conclusion:
+
+Using the `annotationProcessor` scope for Lombok in Maven ensures that it is only used at compile time to process annotations, generate code, and keep your project clean and efficient. It avoids runtime dependencies on Lombok, leading to a more lightweight final artifact and improving your build performance and maintainability.
+
+
+Let's break down the provided code to understand its function in the context of a Spring Security application and how it interacts with your database.
+
+### 1. **Package Declaration**
+
+```java
+package com.wchamara.springsecurity.repository;
+```
+
+This specifies that the `CustomerRepository` interface belongs to the `com.wchamara.springsecurity.repository` package. It’s a common practice to organize Spring Boot applications into separate packages such as `repository`, `model`, `controller`, etc., to keep the project well-structured and maintainable.
+
+### 2. **Imports**
+
+```java
+import com.wchamara.springsecurity.model.Customer;
+import org.springframework.data.repository.CrudRepository;
+import org.springframework.stereotype.Repository;
+```
+
+- **`com.wchamara.springsecurity.model.Customer`**: This is the JPA entity class representing the `Customer` table in the database. The `Customer` class defines the structure of the customer, including fields like `id`, `email`, `pwd`, and `role`.
+
+- **`org.springframework.data.repository.CrudRepository`**: This is an interface provided by Spring Data JPA. It provides basic CRUD (Create, Read, Update, Delete) operations for entities. By extending this interface, you gain access to several out-of-the-box methods to interact with the database, like saving an entity, finding an entity by its primary key, deleting an entity, etc.
+
+- **`org.springframework.stereotype.Repository`**: The `@Repository` annotation is used to indicate that the interface is a repository component in Spring. It’s a specialization of `@Component` and indicates that this interface will be responsible for data access and interaction with the database. This annotation also helps Spring handle exceptions and translate them into Spring-specific data access exceptions.
+
+### 3. **Repository Interface**
+
+```java
+@Repository
+public interface CustomerRepository extends CrudRepository<Customer, Long> {
+```
+
+- **`@Repository`**: This marks the interface as a repository, allowing Spring to treat it as a Spring-managed component and handle database interactions. It's a stereotype annotation that indicates the class deals with data access.
+
+- **`extends CrudRepository<Customer, Long>`**: 
+  - **`CrudRepository`**: This is a generic interface provided by Spring Data JPA, which provides basic CRUD operations on an entity. By extending this, the `CustomerRepository` inherits these operations (e.g., `save`, `findById`, `delete`, `findAll`).
+  - **`Customer`**: This is the entity type that the repository will manage, representing records in the `Customer` table.
+  - **`Long`**: This is the type of the primary key (ID) for the `Customer` entity. In your case, the `Customer` entity’s `id` field is of type `Long`.
+
+### 4. **Custom Query Method**
+
+```java
+<Optional> Customer findByEmail(String email);
+```
+
+This is a **custom query method** in Spring Data JPA. Let’s break it down:
+
+- **`Optional`**: This generic wrapper is commonly used to indicate that the result might or might not be present. However, in your current code, the syntax is incorrect. It should be:
+
+  ```java
+  Optional<Customer> findByEmail(String email);
+  ```
+
+  This change would ensure that the method returns an `Optional<Customer>`, which means that the result can either be:
+  - **Present**: When a customer with the given email is found.
+  - **Empty**: When no customer with the given email is found.
+
+  Using `Optional` helps avoid `NullPointerException` and encourages better error handling.
+
+- **`Customer findByEmail(String email)`**: This is a **derived query method** provided by Spring Data JPA. Spring Data can automatically generate the SQL query based on the method name. It infers the SQL query from the method signature.
+
+#### Spring Data JPA Derived Queries:
+
+In this case, `findByEmail` tells Spring Data JPA to:
+- **`find`**: Retrieve data from the database.
+- **`ByEmail`**: The query should look for a customer by the `email` field, as defined in the `Customer` entity class.
+
+For example, Spring Data will automatically generate the equivalent of the following SQL:
+
+```sql
+SELECT * FROM customer WHERE email = ?;
+```
+
+The `email` parameter is passed into the method, and Spring Data handles the query execution behind the scenes.
+
+### 5. **Usage of the Repository**
+
+#### Example 1: Find a Customer by Email
+
+Assume you have a `CustomerService` class that needs to find a customer by their email address. The `CustomerRepository` can be used like this:
+
+```java
+import com.wchamara.springsecurity.model.Customer;
+import com.wchamara.springsecurity.repository.CustomerRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.Optional;
+
+@Service
+public class CustomerService {
+
+    @Autowired
+    private CustomerRepository customerRepository;
+
+    public Customer getCustomerByEmail(String email) {
+        Optional<Customer> customerOptional = customerRepository.findByEmail(email);
+        if (customerOptional.isPresent()) {
+            return customerOptional.get();
+        } else {
+            throw new RuntimeException("Customer not found with email: " + email);
+        }
+    }
+}
+```
+
+- **`findByEmail(email)`**: This calls the custom query method in `CustomerRepository`. Spring Data JPA translates the method name into a SQL query, retrieves the customer from the database, and returns it wrapped in an `Optional<Customer>`.
+- **Handling Optional**: The method checks if a customer exists using `isPresent()` and retrieves the customer using `get()`. If no customer is found, it throws an exception.
+
+#### Example 2: Storing a New Customer
+
+You can also use the `CustomerRepository` to save a new customer to the database:
+
+```java
+import com.wchamara.springsecurity.model.Customer;
+import com.wchamara.springsecurity.repository.CustomerRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+@Service
+public class CustomerService {
+
+    @Autowired
+    private CustomerRepository customerRepository;
+
+    public Customer createCustomer(Customer customer) {
+        return customerRepository.save(customer);
+    }
+}
+```
+
+Here’s what’s happening:
+- **`save(customer)`**: This method comes from `CrudRepository`. It persists the customer entity into the database. If the customer already exists (determined by the `id` field), it updates the record; otherwise, it inserts a new record.
+
+#### Example 3: Deleting a Customer
+
+To delete a customer from the database by their ID:
+
+```java
+public void deleteCustomer(Long id) {
+    customerRepository.deleteById(id);
+}
+```
+
+This deletes the customer with the given `id`.
+
+### Conclusion
+
+- The `CustomerRepository` interface extends Spring Data JPA’s `CrudRepository`, providing built-in CRUD functionality for the `Customer` entity.
+- The `findByEmail(String email)` method is a custom query method, where Spring Data JPA automatically generates the SQL query based on the method name.
+- Using `Optional<Customer>` ensures safer handling of null values, avoiding potential `NullPointerException`s.
+- This repository pattern promotes cleaner code by separating the data access layer from the business logic and allows for easier testing and maintenance.
 
 ## 007 Creating our own custom implementation of UserDetailsService
 ## 008 Building a new REST API to allow the registration of new User
