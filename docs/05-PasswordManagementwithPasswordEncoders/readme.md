@@ -140,6 +140,22 @@
     - [Important Security Notes:](#important-security-notes)
     - [Conclusion:](#conclusion-2)
   - [006 Drawbacks of Hashing \& what are Brute force attacks, Dictionary or Rainbow tab](#006-drawbacks-of-hashing--what-are-brute-force-attacks-dictionary-or-rainbow-tab)
+    - [1. **Typical Password Hashing Process**](#1-typical-password-hashing-process)
+      - [Steps:](#steps)
+    - [2. **Example of Password Hashing in Action**](#2-example-of-password-hashing-in-action)
+      - [Insights from the Example:](#insights-from-the-example)
+    - [3. **Vulnerabilities of Simple Hashing**](#3-vulnerabilities-of-simple-hashing)
+      - [a) **Rainbow Table Attacks**](#a-rainbow-table-attacks)
+      - [b) **Brute-Force Attacks**](#b-brute-force-attacks)
+    - [4. **Limitations of Basic Hashing and How to Improve Security**](#4-limitations-of-basic-hashing-and-how-to-improve-security)
+      - [a) **Adding Salt**](#a-adding-salt)
+      - [b) **Using a Strong Hashing Algorithm with Salt**](#b-using-a-strong-hashing-algorithm-with-salt)
+    - [5. **Best Practices for Hashing Passwords**](#5-best-practices-for-hashing-passwords)
+      - [a) **Use Salt for Every Password**](#a-use-salt-for-every-password)
+      - [b) **Use a Slow Hashing Algorithm (e.g., bcrypt, Argon2)**](#b-use-a-slow-hashing-algorithm-eg-bcrypt-argon2)
+      - [c) **Avoid Weak Passwords**](#c-avoid-weak-passwords)
+      - [d) **Implement Multi-Factor Authentication (MFA)**](#d-implement-multi-factor-authentication-mfa)
+    - [6. **Conclusion**](#6-conclusion-1)
   - [007 How to overcome Hashing drawbacks, Brute force and Dictionary table attacks](#007-how-to-overcome-hashing-drawbacks-brute-force-and-dictionary-table-attacks)
   - [008 Introduction to PasswordEncoders in Spring Security](#008-introduction-to-passwordencoders-in-spring-security)
   - [009 Deep dive of PasswordEncoder implementation classes](#009-deep-dive-of-passwordencoder-implementation-classes)
@@ -1288,6 +1304,94 @@ This command is an example of how to compute a **SHA-256 hash** for a string (`"
 ![alt text](image-9.png)
 ![alt text](image-10.png)
 ## 006 Drawbacks of Hashing & what are Brute force attacks, Dictionary or Rainbow tab
+
+![alt text](image-11.png)
+The image provides an explanation of the process of **hashing passwords** for secure storage, along with an example showing potential vulnerabilities when users choose weak or common passwords. Let's go through the steps in detail and discuss the strengths and weaknesses of hashing, especially in the context of password security.
+
+### 1. **Typical Password Hashing Process**
+
+When storing user passwords in a system, it is standard practice to **hash** the password instead of storing it in plain text. This ensures that even if someone gains access to the database, they won’t be able to see the original passwords. Here’s the process:
+
+#### Steps:
+1. **Receiving the Password**:
+   - During the registration process, the system receives the password from the user. For example, a user may choose the password `12345`.
+
+2. **Hashing the Password**:
+   - The system immediately hashes the password using a cryptographic hash function (like SHA-256, bcrypt, etc.). The original plain-text password is discarded, and only the hash value is stored in the database.
+
+3. **Comparing During Login**:
+   - When the user logs in, the system hashes the entered password and compares it with the stored hash in the database. If the hashes match, the user is authenticated and granted access.
+
+### 2. **Example of Password Hashing in Action**
+
+In the table provided in the image, several users have registered with weak and common passwords such as `12345` and `password`. The table shows the resulting hash values for each password.
+
+| User ID | Username  | Plain Password | Hash Password                                                            |
+|---------|-----------|----------------|---------------------------------------------------------------------------|
+| 1       | johndoe   | 12345          | 5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5           |
+| 2       | mike123   | password       | 5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8           |
+| 3       | pavan189  | 12345          | 5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5           |
+| 4       | saanvi180 | password       | 5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8           |
+
+#### Insights from the Example:
+- **Hash Collision for Identical Passwords**:
+  - Notice that users `johndoe` and `pavan189` both use the password `12345`. As a result, they have identical hash values (`5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5`).
+  - Similarly, users `mike123` and `saanvi180` both use the password `password`, resulting in identical hash values (`5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8`).
+
+### 3. **Vulnerabilities of Simple Hashing**
+
+While hashing passwords improves security compared to storing them in plain text, the system shown here has some weaknesses, particularly because many users choose simple, commonly used passwords. These weaknesses can be exploited by attackers using techniques like **rainbow tables** and **brute-force attacks**.
+
+#### a) **Rainbow Table Attacks**
+A **rainbow table** is a precomputed list of hash values for common passwords. Attackers use these tables to quickly match hashes found in a database to their original passwords.
+
+- **Example**: If an attacker has access to a hash (`5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5`), they can check a rainbow table and find that it corresponds to the password `12345`. Once they know this, they can break into accounts using this weak password.
+
+#### b) **Brute-Force Attacks**
+If attackers know that weak passwords like `12345` or `password` are common, they can systematically try these and other simple passwords to see if their hash matches any stored hash in the system. For example:
+- The hash `5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8` corresponds to the password `password`. Attackers can try common passwords and check their hashes to identify users with weak passwords.
+
+### 4. **Limitations of Basic Hashing and How to Improve Security**
+
+The image highlights a major limitation of simple hashing: **identical passwords generate identical hashes**, which makes it easier for attackers to exploit weak passwords. To improve security, more advanced techniques are needed:
+
+#### a) **Adding Salt**
+**Salting** involves adding a unique random value (called a **salt**) to each password before hashing it. Even if two users choose the same password, the salt ensures that their resulting hashes are different.
+
+- **How It Works**:
+  - When a user registers, the system generates a random salt for that user. The password and salt are concatenated and then hashed. The salt is stored along with the hash.
+  - During login, the system uses the same salt to hash the entered password and compares the result with the stored hash.
+
+- **Example with Salt**:
+  - Assume two users both choose `12345` as their password.
+  - User 1’s salt is `randomSalt1`, and user 2’s salt is `randomSalt2`.
+  - The resulting hashes will be different because of the unique salts, even though the passwords are the same.
+
+#### b) **Using a Strong Hashing Algorithm with Salt**
+Popular secure hashing algorithms such as **bcrypt**, **Argon2**, and **PBKDF2** are specifically designed for securely storing passwords. They include automatic salting and allow configurable computational cost (iterations), making brute-force attacks much harder.
+
+- **bcrypt**: A widely-used hashing function for password storage that applies automatic salting and can be configured to take longer to compute, increasing the effort required for brute-force attacks.
+- **Argon2**: A newer and more secure password hashing function, designed to be resistant to both rainbow table and brute-force attacks.
+
+### 5. **Best Practices for Hashing Passwords**
+
+To avoid the vulnerabilities shown in the image, follow these best practices:
+
+#### a) **Use Salt for Every Password**
+Salting ensures that even if two users have the same password, their hash values will be different, preventing attackers from easily recognizing common passwords or using rainbow tables.
+
+#### b) **Use a Slow Hashing Algorithm (e.g., bcrypt, Argon2)**
+Choose a hashing algorithm that can be configured to slow down the hashing process (via iterations or work factors). This makes brute-force attacks impractical because it significantly increases the time needed to try each possible password.
+
+#### c) **Avoid Weak Passwords**
+Encourage users to create strong passwords by implementing password policies that require a mix of letters, numbers, and special characters. Consider using a password manager to help users manage strong, unique passwords.
+
+#### d) **Implement Multi-Factor Authentication (MFA)**
+To further enhance security, implement MFA so that users are required to provide a second form of authentication (such as a code from a mobile app) in addition to their password. This adds an extra layer of protection, even if a password is compromised.
+
+### 6. **Conclusion**
+
+The hashing process shown in the image highlights both the advantages and limitations of storing hashed passwords. While hashing passwords provides better security than storing them in plain text, the use of weak or common passwords, as well as the lack of salt, can still expose a system to attacks. To ensure stronger security, passwords should be hashed with salt using algorithms designed specifically for password storage (like bcrypt or Argon2). Moreover, encouraging strong password creation and implementing additional security layers, such as multi-factor authentication, can greatly reduce the risk of unauthorized access.
 ## 007 How to overcome Hashing drawbacks, Brute force and Dictionary table attacks
 ## 008 Introduction to PasswordEncoders in Spring Security
 ## 009 Deep dive of PasswordEncoder implementation classes
