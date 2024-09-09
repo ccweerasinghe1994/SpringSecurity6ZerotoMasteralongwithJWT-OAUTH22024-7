@@ -430,14 +430,191 @@ This configuration ensures that even though one user’s password is stored in p
 ![alt text](image-1.png)
 
 ## 003 Demo of CompromisedPasswordChecker
+![alt text](image-2.png)
+![alt text](image-3.png)
 
 
 ```java
+package com.wchamara.springsecurity.config;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.password.CompromisedPasswordChecker;
+import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.factory.PasswordEncoderFactories;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.password.HaveIBeenPwnedRestApiPasswordChecker;
+
+@Configuration
+@EnableWebSecurity
+public class ProjectSecurityConfig {
+
+
+    @Bean
+    SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
+//        http.authorizeHttpRequests((requests) -> requests.anyRequest().denyAll());
+//        http.authorizeHttpRequests((requests) -> requests.anyRequest().permitAll());
+        http.authorizeHttpRequests((requests) -> requests
+                .requestMatchers("myAccount", "myBalance", "myCards", "myLoans").authenticated()
+                .requestMatchers("notices", "welcome", "contact", "error").permitAll()
+        );
+        http.formLogin(Customizer.withDefaults());
+        http.httpBasic(Customizer.withDefaults());
+//        http.formLogin(AbstractHttpConfigurer::disable);
+//        http.httpBasic(AbstractHttpConfigurer::disable);
+        return http.build();
+    }
+
+    @Bean
+    public UserDetailsService userDetailsService() {
+        UserDetails user = User.withUsername("user").password("{noop}password").authorities("read").build();
+        UserDetails admin = User.withUsername("admin").password("{bcrypt}$2y$14$OPivb1UNmmrSYTo5OQWDnuAZ78cS9DBCV5S9SsuWroQ10.wtm9JH6").authorities("admin").build();
+
+        return new InMemoryUserDetailsManager(user, admin);
+
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return PasswordEncoderFactories.createDelegatingPasswordEncoder();
+    }
+
+    @Bean
+    public CompromisedPasswordChecker compromisedPasswordChecker() {
+        return new HaveIBeenPwnedRestApiPasswordChecker();
+    }
+
+
+}
 
 ```
+
+The method:
+
 ```java
-
+@Bean
+public CompromisedPasswordChecker compromisedPasswordChecker() {
+    return new HaveIBeenPwnedRestApiPasswordChecker();
+}
 ```
+
+is introducing a mechanism to **check if a user's password has been compromised** by comparing it against a database of known compromised passwords. This is a common feature in security-conscious applications, helping to enhance the protection of user accounts by preventing users from using passwords that have already been exposed in data breaches.
+
+### **1. What is a Compromised Password Checker?**
+
+A **compromised password checker** is a service or utility that verifies if a password has been involved in known data breaches. The goal is to protect users from using insecure, compromised passwords that attackers could easily guess or exploit.
+
+- **Why Check for Compromised Passwords?**  
+  Over time, many passwords are leaked in data breaches and end up in lists circulated on the dark web. Attackers can use these lists for credential stuffing attacks, where they try commonly used or compromised passwords against multiple accounts. Checking for compromised passwords helps mitigate this risk by preventing users from using passwords that are already publicly known.
+
+### **2. The `HaveIBeenPwnedRestApiPasswordChecker`**
+
+In the code above, you’re using the `HaveIBeenPwnedRestApiPasswordChecker`. This class integrates with the **Have I Been Pwned (HIBP)** API to check if a password has appeared in known breaches.
+
+- **Have I Been Pwned** is a popular online service that provides a large database of passwords that have been leaked in various breaches. It allows applications to query their API and determine whether a password has been compromised in any data breaches.
+
+By using `HaveIBeenPwnedRestApiPasswordChecker`, your Spring Security application will check the passwords of users during certain operations (like registration or password change) and alert if the password has been involved in a breach.
+
+### **3. How Does the Have I Been Pwned API Work?**
+
+The HIBP API works in a **privacy-preserving** manner using a technique called **k-anonymity**. Here’s how it works:
+
+1. **Password Hashing**: The password that needs to be checked is hashed using the SHA-1 algorithm (the hashing is done on the client-side).
+2. **Prefix Matching**: The first five characters of the hash are sent to the HIBP API.
+3. **Result Lookup**: The API returns a list of all hash suffixes that match the given prefix (along with how many times the hash has been seen in breaches).
+4. **Comparison**: The client compares the full password hash with the returned list to determine if the password has been compromised.
+
+### **4. Example Scenario**
+
+Let’s say a user tries to register or change their password in your application. During that process, Spring Security checks if the password has been compromised.
+
+1. **User Registration**:
+   - A user enters a password during the registration process.
+   - Before storing the password, Spring Security uses the `HaveIBeenPwnedRestApiPasswordChecker` to check if the password has appeared in a data breach.
+
+2. **Compromised Password**:
+   - If the password exists in the HIBP database, an error is returned, instructing the user to choose a different password.
+
+3. **Safe Password**:
+   - If the password has not been compromised, the registration process continues, and the password is safely stored (using bcrypt encoding, for instance).
+
+#### Example Flow:
+
+1. User tries to register with the password `123456`.
+2. The password is hashed using SHA-1.
+3. The first five characters of the hash are sent to the HIBP API.
+4. The API returns a list of hashes that match the prefix.
+5. The application checks the full hash against the returned results.
+6. If a match is found (indicating that the password `123456` has been compromised), the registration is blocked with an error message like:
+   ```plaintext
+   "This password has been involved in a data breach. Please choose a different password."
+   ```
+
+### **5. How the Checker Fits into the Application**
+
+By adding this method to the configuration:
+
+```java
+@Bean
+public CompromisedPasswordChecker compromisedPasswordChecker() {
+    return new HaveIBeenPwnedRestApiPasswordChecker();
+}
+```
+
+You are essentially plugging in a service that will:
+
+- **Automatically validate passwords** when a user sets or changes a password.
+- **Block compromised passwords** from being used in your application.
+
+This increases the security of your application by ensuring that even if a user chooses a weak or commonly used password, they will be warned and required to choose a more secure password.
+
+### **6. Customizing the Password Checker**
+
+The default implementation checks against the HIBP service, but you could customize this to use a different API or a local database of known compromised passwords if needed. In more advanced configurations, you might:
+- **Cache results** locally to reduce API calls.
+- **Throttle API requests** to avoid hitting rate limits from HIBP.
+- **Integrate with other password validation strategies** like length and complexity requirements.
+
+### **Example of How it Works in Your Application**
+
+Assuming your `ProjectSecurityConfig` class is configured like this:
+
+```java
+@Bean
+public UserDetailsService userDetailsService() {
+    UserDetails user = User.withUsername("user").password("{noop}password").authorities("read").build();
+    UserDetails admin = User.withUsername("admin").password("{bcrypt}$2y$14$OPivb1UNmmrSYTo5OQWDnuAZ78cS9DBCV5S9SsuWroQ10.wtm9JH6").authorities("admin").build();
+
+    return new InMemoryUserDetailsManager(user, admin);
+}
+```
+
+1. A new user tries to register with the password `"123456"`.
+2. The **`HaveIBeenPwnedRestApiPasswordChecker`** checks if `"123456"` is in the HIBP database.
+3. Since `"123456"` is a known compromised password (it’s one of the most common passwords ever), the API returns a match.
+4. The user receives an error message asking them to pick a different password.
+5. The user changes the password to a more secure one, like `"Passw0rd!123"`.
+6. The API checks the new password, finds no match, and allows the user to proceed with registration.
+
+---
+
+### **7. Conclusion**
+
+The `CompromisedPasswordChecker` using `HaveIBeenPwnedRestApiPasswordChecker` is a valuable addition to your security setup. It ensures that users do not choose passwords that have been exposed in data breaches, significantly reducing the risk of account compromise due to weak or common passwords.
+
+By integrating this into your Spring Security application:
+- You’re enhancing the security posture by checking passwords against a large dataset of known compromised passwords.
+- You’re automatically preventing users from setting unsafe passwords.
+- The implementation uses the **Have I Been Pwned API**, which is known for its reliability and security-focused approach to password validation.
+
+This is an important step toward providing robust protection for user accounts in your application.
 
 ## 004 Deep Dive of UserDetailsService & UserDetailsManager Interfaces
 ```java
