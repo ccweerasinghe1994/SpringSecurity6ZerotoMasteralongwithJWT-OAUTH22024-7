@@ -1591,5 +1591,381 @@ The `BankUserDetailsService` class is an implementation of `UserDetailsService`,
 
 ```
 
+![alt text](image-1.png)
+
 ## 008 Building a new REST API to allow the registration of new User
 
+```java
+package com.wchamara.springsecurity.controller;
+
+import com.wchamara.springsecurity.model.Customer;
+import com.wchamara.springsecurity.repository.CustomerRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequiredArgsConstructor
+public class UserController {
+
+    private final CustomerRepository customerRepository;
+
+    private final PasswordEncoder passwordEncoder;
+
+    @PostMapping("/register")
+    public ResponseEntity<String> registerUser(@RequestBody Customer customer) {
+
+        try {
+            String hashedPassword = passwordEncoder.encode(customer.getPwd());
+
+            customer.setPwd(hashedPassword);
+            Customer saved = customerRepository.save(customer);
+
+            if (saved.getId() > 0) {
+                return ResponseEntity.status(HttpStatus.CREATED).body("User registration Successful");
+            } else {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("User registration failed");
+            }
+
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal server error occurred" + e.getMessage());
+        }
+
+
+    }
+}
+
+```
+
+The provided `UserController` class is a Spring Boot REST controller that handles user registration functionality. It interacts with the database through the `CustomerRepository` and uses `PasswordEncoder` to hash the user’s password before saving it to the database. Let's break this down in detail, explaining each component and how it works, with practical examples.
+
+### 1. **Class-level Annotations and Dependencies**
+
+```java
+@RestController
+@RequiredArgsConstructor
+public class UserController {
+```
+
+- **`@RestController`**: This annotation is a convenience annotation that combines `@Controller` and `@ResponseBody`. It indicates that this class will handle HTTP requests and return the response in JSON or another format suitable for a REST API. In this case, it’s used for handling user-related requests, like user registration.
+  
+- **`@RequiredArgsConstructor`**: This is a Lombok annotation that automatically generates a constructor with all required (i.e., `final`) fields. It simplifies constructor-based dependency injection, where Spring will automatically inject the required beans (`CustomerRepository` and `PasswordEncoder`).
+
+- **Fields:**
+  - `private final CustomerRepository customerRepository;`: This field is the repository that provides access to the database, allowing the controller to save the customer data.
+  - `private final PasswordEncoder passwordEncoder;`: This field is used to securely hash the password before saving it to the database. Using a password encoder ensures that passwords are not stored in plain text.
+
+### 2. **`@PostMapping("/register")` Method**
+
+This method handles HTTP POST requests to register a new user. It expects a `Customer` object in the request body and returns an appropriate HTTP response.
+
+```java
+@PostMapping("/register")
+public ResponseEntity<String> registerUser(@RequestBody Customer customer) {
+```
+
+- **`@PostMapping("/register")`**: This annotation maps HTTP POST requests made to `/register` to this method. The registration process is commonly implemented using POST since it involves creating new resources (users) on the server.
+
+- **`@RequestBody Customer customer`**: This annotation binds the JSON body of the HTTP request to the `Customer` object. When a client sends a registration request with user details in JSON format, Spring automatically converts it to a `Customer` object based on the incoming fields. 
+
+#### Example Registration Request (JSON):
+
+```json
+{
+  "email": "user@domain.com",
+  "pwd": "Password123",
+  "role": "ROLE_USER"
+}
+```
+
+### 3. **Password Hashing and Saving to Database**
+
+```java
+String hashedPassword = passwordEncoder.encode(customer.getPwd());
+customer.setPwd(hashedPassword);
+Customer saved = customerRepository.save(customer);
+```
+
+- **Password Encoding**:
+  - **`passwordEncoder.encode(customer.getPwd())`**: This line hashes the raw password (`customer.getPwd()`) using the provided `PasswordEncoder`. This is crucial for security, as storing raw passwords in the database is dangerous. Hashing converts the password into a format that is secure and difficult to reverse-engineer.
+  
+  - **Example of Password Hashing**: Suppose the user submits the password `Password123`. The `PasswordEncoder` (e.g., BCrypt) will hash it into something like:
+  
+    ```
+    $2a$10$EfgDhPqtVJ/EXG6V.s2mUOvkg0mvJsbiXbFgBvzdlvWtHBUxleX0m
+    ```
+  
+  This hash is what gets stored in the database, not the raw password.
+
+- **Setting the Hashed Password**:
+  - **`customer.setPwd(hashedPassword)`**: This replaces the plain-text password in the `Customer` object with the hashed version, ensuring that the raw password is never saved in the database.
+  
+- **Saving the Customer**:
+  - **`customerRepository.save(customer)`**: This line uses the `CustomerRepository` to save the new `Customer` object to the database. The `save` method is inherited from `CrudRepository` and can be used for both creating and updating entities.
+
+### 4. **Handling the Response**
+
+After the customer is saved to the database, the method checks if the customer has been successfully created and returns an appropriate response:
+
+```java
+if (saved.getId() > 0) {
+    return ResponseEntity.status(HttpStatus.CREATED).body("User registration Successful");
+} else {
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("User registration failed");
+}
+```
+
+- **Checking Success**: If the `Customer` entity is saved successfully, the `save` method will return the saved entity, which contains a generated `id`. A successful save should result in an `id` value greater than `0`, indicating that the customer record was persisted in the database.
+  
+- **Response Based on Success**:
+  - **`HttpStatus.CREATED` (201)**: If the user was successfully registered (i.e., the `id` is set), it returns a **201 Created** response status with a message indicating that the user registration was successful.
+  
+  - **`HttpStatus.BAD_REQUEST` (400)**: If the customer object was not saved correctly (i.e., the `id` is not set), the method returns a **400 Bad Request** response with a failure message.
+
+#### Example Successful Response (JSON):
+```json
+{
+  "status": 201,
+  "message": "User registration Successful"
+}
+```
+
+#### Example Failure Response (JSON):
+```json
+{
+  "status": 400,
+  "message": "User registration failed"
+}
+```
+
+### 5. **Handling Exceptions**
+
+```java
+catch (Exception e) {
+    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+            .body("Internal server error occurred" + e.getMessage());
+}
+```
+
+- **Exception Handling**: If any exception occurs during the registration process (e.g., database errors, constraints violations), the method catches the exception and returns a **500 Internal Server Error** with the exception message. This prevents the application from exposing sensitive details to the client and ensures that the system gracefully handles unexpected errors.
+
+#### Example Error Response (JSON):
+```json
+{
+  "status": 500,
+  "message": "Internal server error occurred: Duplicate email"
+}
+```
+
+### Full Registration Flow Example:
+
+#### Client Request:
+
+- **Request**: A user sends a `POST` request to `/register` with the following payload:
+
+```json
+{
+  "email": "user@domain.com",
+  "pwd": "Password123",
+  "role": "ROLE_USER"
+}
+```
+
+#### Server Processing Steps:
+
+1. The controller receives the `POST` request and binds the JSON body to a `Customer` object.
+2. The `PasswordEncoder` hashes the user's password `Password123` to a secure hash (e.g., `$2a$10$....`).
+3. The hashed password is set in the `Customer` object, replacing the raw password.
+4. The `CustomerRepository` saves the `Customer` object to the database, inserting the record with the hashed password.
+5. If successful, the system returns a `201 Created` response; otherwise, it returns an appropriate error code.
+
+#### Possible Server Responses:
+
+1. **Successful Registration:**
+
+```json
+{
+  "status": 201,
+  "message": "User registration Successful"
+}
+```
+
+2. **Failed Registration (Duplicate Email):**
+
+```json
+{
+  "status": 400,
+  "message": "User registration failed"
+}
+```
+
+3. **Internal Server Error:**
+
+```json
+{
+  "status": 500,
+  "message": "Internal server error occurred: Duplicate email"
+}
+```
+
+### Conclusion
+
+- The `UserController` handles user registration by accepting a `POST` request, hashing the password securely using a `PasswordEncoder`, and saving the `Customer` to the database.
+- It ensures that the password is stored securely by using hashing mechanisms, such as BCrypt, before saving to the database.
+- The controller returns appropriate HTTP status codes based on the success or failure of the operation and handles potential errors gracefully.
+
+```java
+    @Bean
+    SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
+//        http.authorizeHttpRequests((requests) -> requests.anyRequest().denyAll());
+//        http.authorizeHttpRequests((requests) -> requests.anyRequest().permitAll());
+        http.csrf(httpSecurityCsrfConfigurer -> httpSecurityCsrfConfigurer.disable())
+                .authorizeHttpRequests((requests) -> requests
+                        .requestMatchers("myAccount", "myBalance", "myCards", "myLoans").authenticated()
+                        .requestMatchers("notices", "welcome", "contact", "error", "register").permitAll()
+                );
+        http.formLogin(Customizer.withDefaults());
+        http.httpBasic(Customizer.withDefaults());
+//        http.formLogin(AbstractHttpConfigurer::disable);
+//        http.httpBasic(AbstractHttpConfigurer::disable);
+        return http.build();
+    }
+```
+
+
+The `http.csrf(httpSecurityCsrfConfigurer -> httpSecurityCsrfConfigurer.disable())` line in your Spring Security configuration is disabling the Cross-Site Request Forgery (CSRF) protection for your application. This can be useful in certain contexts, but it comes with security risks if not properly understood. Let's break it down step by step, explaining its purpose, how it works, and when it should be used or avoided.
+
+### 1. **What is CSRF?**
+CSRF (Cross-Site Request Forgery) is a type of attack where a malicious website tricks a user into performing actions on another website where they are authenticated. It exploits the fact that the user is already logged in and has a valid session or authentication token.
+
+#### **Example of a CSRF Attack**:
+1. The user logs into `www.mybank.com` and their session is active.
+2. The user visits a malicious website (`www.badwebsite.com`) in another tab.
+3. The malicious website sends a request to `www.mybank.com` to perform an action (e.g., transfer money).
+4. Since the user is already authenticated in `www.mybank.com`, the request is accepted and processed without the user's explicit consent.
+
+### 2. **What is CSRF Protection?**
+To prevent CSRF attacks, Spring Security includes built-in protection against such attacks. CSRF protection works by requiring an additional token (known as a CSRF token) to be sent with each HTTP request that modifies data (e.g., POST, PUT, DELETE requests). This token is tied to the user's session and must match what the server expects, ensuring that the request is coming from the same source.
+
+### 3. **Why Disable CSRF Protection?**
+
+```java
+http.csrf(httpSecurityCsrfConfigurer -> httpSecurityCsrfConfigurer.disable())
+```
+
+This line disables CSRF protection for your Spring Security configuration. By disabling it, your application will no longer require a CSRF token for state-changing requests (like POST, PUT, DELETE).
+
+#### **When Disabling CSRF Can Be Safe**:
+1. **Stateless APIs (REST APIs)**: CSRF protection is not required for APIs that don’t rely on sessions, such as RESTful services that use JWT (JSON Web Tokens) or OAuth2 tokens. In such cases, authentication is handled using tokens passed in headers, not cookies, so there is no session to hijack.
+   
+   - **Example**: If you're building a stateless REST API that uses JWTs for authentication, you can safely disable CSRF protection because requests will require a valid JWT token in the `Authorization` header.
+  
+2. **Public-Only Websites**: If your website doesn’t have user authentication and doesn’t process sensitive information (e.g., purely informational websites), CSRF protection might not be necessary.
+
+#### **When Disabling CSRF is Dangerous**:
+1. **Web Applications with User Authentication**: Disabling CSRF on websites with forms that change data (e.g., user registration, account settings, submitting orders) can open your site to CSRF attacks if you rely on session-based authentication.
+   
+   - **Example**: Suppose you have an authenticated banking application where users can transfer money using a form. Disabling CSRF protection would allow an attacker to trick an authenticated user into submitting the form on their behalf, resulting in unauthorized actions like transferring money without the user’s consent.
+
+### 4. **How CSRF Protection Works in Spring Security (When Enabled)**
+
+When CSRF protection is enabled (which is the default in Spring Security):
+
+1. **CSRF Token Generation**: For each user session, Spring Security generates a unique CSRF token.
+2. **Token Injection in Forms**: When a form is rendered in the user’s browser (e.g., login form or any form that changes data), Spring automatically includes the CSRF token in a hidden input field:
+   ```html
+   <input type="hidden" name="_csrf" value="unique_csrf_token_value">
+   ```
+3. **Validating the Token**: When the user submits the form (e.g., POST request), Spring Security checks the CSRF token sent with the request against the token stored in the session.
+4. **Action Validation**: If the CSRF token matches, the request is processed. If not, the request is denied, preventing potential CSRF attacks.
+
+#### **Example of CSRF Token in a Form**:
+```html
+<form action="/transferFunds" method="POST">
+    <input type="hidden" name="_csrf" value="unique_csrf_token_value">
+    <label for="amount">Amount:</label>
+    <input type="text" id="amount" name="amount">
+    <input type="submit" value="Transfer">
+</form>
+```
+
+When the user submits this form, Spring will validate the `_csrf` token and process the transfer only if the token is valid.
+
+### 5. **CSRF Token in AJAX Requests**
+
+If you're using JavaScript to send AJAX requests (e.g., `fetch()` or `XMLHttpRequest`), CSRF protection still applies. You need to include the CSRF token in the request headers:
+
+#### Example of CSRF Token in AJAX Request:
+
+```javascript
+fetch('/transferFunds', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': document.querySelector('input[name="_csrf"]').value // Get the CSRF token from the page
+    },
+    body: JSON.stringify({ amount: 100 })
+});
+```
+
+### 6. **Real-World Use Case for Disabling CSRF**
+
+Let’s take an example where you’re building a RESTful API using Spring Boot, which uses JWT (JSON Web Tokens) for authentication. JWTs are passed in HTTP headers, not stored in cookies or sessions. CSRF protection, which is designed to prevent cookie-based session hijacking, is not needed in this context.
+
+#### REST API Example:
+
+```java
+@RestController
+public class ApiController {
+
+    @GetMapping("/api/data")
+    public ResponseEntity<String> getData() {
+        return ResponseEntity.ok("This is secure API data.");
+    }
+}
+```
+
+If you disable CSRF in this API like so:
+
+```java
+@Bean
+SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
+    http.csrf(httpSecurityCsrfConfigurer -> httpSecurityCsrfConfigurer.disable())
+        .authorizeHttpRequests((requests) -> requests.anyRequest().authenticated())
+        .httpBasic(Customizer.withDefaults());
+    return http.build();
+}
+```
+
+The API no longer expects CSRF tokens for POST, PUT, or DELETE requests. Instead, the security is handled using JWT tokens passed in the `Authorization` header:
+
+```http
+GET /api/data HTTP/1.1
+Host: api.example.com
+Authorization: Bearer your.jwt.token
+```
+
+### 7. **Why You Disabled CSRF in the Example**
+
+In your Spring Security configuration, you are disabling CSRF protection using this line:
+```java
+http.csrf(httpSecurityCsrfConfigurer -> httpSecurityCsrfConfigurer.disable());
+```
+
+Here are some possible reasons you might want to disable it:
+- **Stateless API**: If your application primarily uses stateless authentication (such as JWT tokens), CSRF protection may not be necessary.
+- **Mobile Applications**: If your application is accessed primarily via mobile applications (which send API requests, not browser forms), you may disable CSRF since mobile apps don't store sessions in the same way web browsers do.
+- **Simplified Setup for Testing**: During development or testing phases, you might disable CSRF to avoid dealing with token generation and validation, especially when focusing on basic functionality.
+
+### Conclusion
+
+- **Disabling CSRF (`.csrf().disable()`)**: This removes the CSRF protection from your Spring Security configuration, making it unnecessary to include CSRF tokens in requests. This is typically safe in stateless APIs or applications that don’t rely on session-based authentication.
+  
+- **When to Keep CSRF Protection**: If you're building a traditional web application where users log in using forms and maintain sessions (e.g., e-commerce, banking systems), CSRF protection should be enabled to protect users from malicious actions initiated by third-party websites.
+
+In summary, disabling CSRF protection should be done carefully and is suitable for stateless applications like REST APIs that use token-based authentication mechanisms. However, for session-based web applications, CSRF protection plays a critical role in ensuring security and preventing attacks.

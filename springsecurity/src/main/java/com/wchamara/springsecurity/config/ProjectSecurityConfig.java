@@ -18,10 +18,11 @@ public class ProjectSecurityConfig {
     SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
 //        http.authorizeHttpRequests((requests) -> requests.anyRequest().denyAll());
 //        http.authorizeHttpRequests((requests) -> requests.anyRequest().permitAll());
-        http.authorizeHttpRequests((requests) -> requests
-                .requestMatchers("myAccount", "myBalance", "myCards", "myLoans").authenticated()
-                .requestMatchers("notices", "welcome", "contact", "error").permitAll()
-        );
+        http.csrf(httpSecurityCsrfConfigurer -> httpSecurityCsrfConfigurer.disable())
+                .authorizeHttpRequests((requests) -> requests
+                        .requestMatchers("myAccount", "myBalance", "myCards", "myLoans").authenticated()
+                        .requestMatchers("notices", "welcome", "contact", "error", "register").permitAll()
+                );
         http.formLogin(Customizer.withDefaults());
         http.httpBasic(Customizer.withDefaults());
 //        http.formLogin(AbstractHttpConfigurer::disable);
