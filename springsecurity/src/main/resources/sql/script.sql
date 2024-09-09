@@ -26,3 +26,17 @@ INSERT INTO authorities (username, authority)
 VALUES ('user', 'read');
 INSERT INTO authorities (username, authority)
 VALUES ('admin', 'admin');
+
+create table `customer`
+(
+    `id`    int          not null auto_increment primary key,
+    `email` varchar(45)  not null,
+    `pwd`   varchar(200) not null,
+    `role`  varchar(45)  not null
+);
+
+
+insert into customer (email, pwd, role)
+values ('user@abcbank.com', '{noop}Sliit123!@#qq11zsa@fd', 'read');
+insert into customer (email, pwd, role)
+values ('admin@abcbank.com', '{bcrypt}$2y$14$OPivb1UNmmrSYTo5OQWDnuAZ78cS9DBCV5S9SsuWroQ10.wtm9JH6', 'admin');

@@ -919,6 +919,147 @@ $2a$10$uV3bpaTkZ8syZKpE.zQWZuuVLEO1Fh17XLRQf6SpY3mCEZa/2YwWS
 
 ### Conclusion
 This method sets up a `JdbcUserDetailsManager`, allowing your Spring Security application to load user details and roles from a relational database via JDBC. The `DataSource` object provides the connection details for the database, and Spring Security will use predefined SQL queries to authenticate users, retrieve their roles, and manage security within the application.
+
+```sql
+create table `customer`
+(
+    `id`    int          not null auto_increment primary key,
+    `email` varchar(45)  not null,
+    `pwd`   varchar(200) not null,
+    `role`  varchar(45)  not null
+);
+
+
+insert into customer (email, pwd, role)
+values ('user@abcbank.com', '{noop}Sliit123!@#qq11zsa@fd', 'read');
+insert into customer (email, pwd, role)
+values ('admin@abcbank.com', '{bcrypt}$2y$14$OPivb1UNmmrSYTo5OQWDnuAZ78cS9DBCV5S9SsuWroQ10.wtm9JH6', 'admin');
+```
+
+Let's break down your SQL `CREATE TABLE` and `INSERT` statements to understand how they work in the context of your Spring Security project. This will help explain how these entries fit into a security mechanism like the one you're using with `JdbcUserDetailsManager`.
+
+### 1. **CREATE TABLE `customer`**
+
+```sql
+CREATE TABLE `customer`
+(
+    `id`    int          not null auto_increment primary key,
+    `email` varchar(45)  not null,
+    `pwd`   varchar(200) not null,
+    `role`  varchar(45)  not null
+);
+```
+
+#### Breakdown:
+
+- **`id` int not null auto_increment primary key**:
+  - `id` is the primary key and will be automatically incremented for each new record.
+  - It ensures that each customer entry has a unique identifier.
+
+- **`email` varchar(45) not null**:
+  - The `email` field stores the customer’s email address and serves as their login username.
+  - `varchar(45)` means the maximum length is 45 characters, and it cannot be null (`not null`).
+
+- **`pwd` varchar(200) not null**:
+  - The `pwd` field stores the customer's password, and it will be hashed (except when using `{noop}` which leaves it unhashed for testing).
+  - The length of `varchar(200)` means it can store up to 200 characters. A password stored as a hash (e.g., using BCrypt) requires more space than a plaintext password.
+  
+- **`role` varchar(45) not null**:
+  - The `role` field defines the user’s role or authority, like "admin" or "read". This role is crucial for role-based access control in the application.
+  - `varchar(45)` means it can store up to 45 characters.
+
+#### Example:
+
+This table will store customer records with an `id`, their `email` (used as the username), a hashed or plain password (`pwd`), and their `role`.
+
+### 2. **INSERT Statements**
+
+These `INSERT` statements add specific users (customers) to the `customer` table with email, password, and role.
+
+#### Inserting a Regular User (No Password Hashing)
+
+```sql
+insert into customer (email, pwd, role)
+values ('user@abcbank.com', '{noop}Sliit123!@#qq11zsa@fd', 'read');
+```
+
+- **`user@abcbank.com`**:
+  - This is the user’s email, which is used as the username for logging into the system.
+  
+- **`{noop}Sliit123!@#qq11zsa@fd`**:
+  - This value represents the password, where `{noop}` indicates that Spring Security should treat it as plain text without applying any encoding. 
+  - `noop` (short for "no operation") is used for testing purposes, and it's not recommended for production environments, as it doesn't protect the password.
+  
+- **`'read'`**:
+  - This is the user’s role. The role `"read"` will allow this user to access only certain parts of the system, as defined by the security configuration.
+
+#### Inserting an Admin User (Password is Hashed with BCrypt)
+
+```sql
+insert into customer (email, pwd, role)
+values ('admin@abcbank.com', '{bcrypt}$2y$14$OPivb1UNmmrSYTo5OQWDnuAZ78cS9DBCV5S9SsuWroQ10.wtm9JH6', 'admin');
+```
+
+- **`admin@abcbank.com`**:
+  - This is the admin user's email address, which will serve as the username for logging in.
+  
+- **`{bcrypt}$2y$14$OPivb1UNmmrSYTo5OQWDnuAZ78cS9DBCV5S9SsuWroQ10.wtm9JH6`**:
+  - The password here is stored using BCrypt, a strong password hashing algorithm. The `{bcrypt}` prefix tells Spring Security that the password is hashed using BCrypt, and it should validate the login using BCrypt when the user logs in.
+  - BCrypt generates a 60-character hash, and the string `"$2y$14$OPivb1UNmmrSYTo5OQWDnuAZ78cS9DBCV5S9SsuWroQ10.wtm9JH6"` represents a hash of the actual password.
+    - `$2y$` is the version identifier.
+    - `14` indicates the computational cost of the hashing algorithm.
+    - The rest is the actual hashed password.
+    
+- **`'admin'`**:
+  - The admin role allows this user to access admin-specific features or areas of the system. Typically, users with this role have higher privileges, such as managing users, configuring settings, etc.
+
+### 3. **How Does Spring Security Use This Information?**
+
+In your security configuration, you are using `JdbcUserDetailsManager` with a database as the data source. Here’s how Spring Security will interact with this table for authentication and authorization:
+
+#### Authentication Process (Logging In):
+
+1. **User Logs In**: 
+   - When a user tries to log in (e.g., with `user@abcbank.com` and the password `Sliit123!@#qq11zsa@fd`), Spring Security will use the `email` field as the username.
+
+2. **Password Validation**:
+   - For the user `user@abcbank.com`, Spring Security sees `{noop}Sliit123!@#qq11zsa@fd` in the database, so it knows to treat the password as plaintext and compares it directly with the entered password.
+   - For the user `admin@abcbank.com`, Spring Security uses BCrypt to validate the password. The user will enter the password, and Spring Security will apply BCrypt to it before comparing it with the hashed value in the database.
+
+3. **Role-Based Access Control**:
+   - Once the user’s credentials are validated, Spring Security checks the `role` field.
+   - If the role is `'admin'`, the user is granted admin privileges as per the configuration in your `SecurityFilterChain` bean.
+   - If the role is `'read'`, the user has limited access and is only permitted to view specific areas of the application (defined in your security configuration).
+
+### 4. **Security Configuration Example: How Roles Are Applied**
+
+In your security configuration, you are restricting access based on roles:
+
+```java
+http.authorizeHttpRequests((requests) -> requests
+    .requestMatchers("myAccount", "myBalance", "myCards", "myLoans").authenticated()
+    .requestMatchers("notices", "welcome", "contact", "error").permitAll()
+);
+```
+
+- **Authenticated Endpoints**: `myAccount`, `myBalance`, `myCards`, `myLoans` require the user to be authenticated. Based on their role (`read`, `admin`), further restrictions can be applied.
+- **Public Endpoints**: `notices`, `welcome`, `contact`, and `error` pages are accessible to everyone without authentication.
+
+### 5. **Important Considerations**:
+- **Password Hashing in Production**: It’s critical to always use password hashing mechanisms like BCrypt in production environments for security. The `{noop}` encoder should only be used in non-production environments for quick testing or demonstration purposes.
+- **Managing Roles**: By using different roles (like `'admin'`, `'read'`), you can control what different users can access within the system. Roles should be enforced in the security configuration to prevent unauthorized access.
+
+### Conclusion:
+
+Your database and `INSERT` statements define two users in the `customer` table:
+- A regular user with the role of `'read'` and an unhashed password.
+- An admin user with the role of `'admin'` and a BCrypt-hashed password.
+
+Spring Security, when integrated with your database through `JdbcUserDetailsManager`, will authenticate these users based on their stored credentials and assign appropriate permissions according to their roles.
+
 ## 006 Creating JPA Entity and repository classes for new table
+
+
+
 ## 007 Creating our own custom implementation of UserDetailsService
 ## 008 Building a new REST API to allow the registration of new User
