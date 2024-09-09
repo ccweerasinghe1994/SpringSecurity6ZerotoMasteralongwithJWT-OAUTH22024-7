@@ -228,6 +228,150 @@ When you run this application, thanks to the `spring-boot-docker-compose` depend
 The `spring-boot-docker-compose` dependency integrates Docker Compose into your Spring Boot application's runtime, allowing for the automatic orchestration of Docker Compose services. It simplifies the management of external services required by your application during development or runtime by automatically starting and stopping them as needed.
 
 ## 003 Understanding JdbcUserDetailsManager & creating Users inside the DB
+
+The SQL statements you provided create two tables: `users` and `authorities`. These tables are commonly used in Spring Security or similar authentication/authorization systems. Let’s break down the structure and purpose of each statement, with examples, to deeply understand how they work together.
+
+### **1. Table Creation: `users`**
+
+```sql
+create table users
+(
+    username varchar(50) not null primary key,
+    password varchar(500) not null,
+    enabled boolean not null
+);
+```
+
+#### **Explanation:**
+- **`username`**: This column stores the unique username of the user. It is defined as `varchar(50)`, meaning it can store up to 50 characters. This field cannot be null (`not null`) and is also set as the **primary key**, ensuring each username is unique.
+  
+- **`password`**: This column stores the user's password. It is defined as `varchar(500)`, allowing up to 500 characters. The length of 500 is typically large to accommodate hashed passwords, which can be lengthy, especially when bcrypt or other strong hashing algorithms are used.
+  
+- **`enabled`**: This column stores a boolean value indicating whether the user is active or inactive. This is often used to disable accounts temporarily (e.g., locking accounts after multiple failed login attempts).
+
+#### **Example:**
+Imagine you have a user named `john_doe` with a password stored as a bcrypt hash and the user is currently active (enabled = `true`).
+
+```sql
+INSERT INTO users (username, password, enabled)
+VALUES ('john_doe', '$2a$10$CwTycUXWue0Thq9StjUM0uJ8rzn3yRUaTflIcXZoFZJG8bJFm3uUm', true);
+```
+- The **username** is `john_doe`.
+- The **password** is a bcrypt hash (the actual password could be something like `password123` before hashing).
+- The **enabled** field is `true`, meaning the user can log in.
+
+---
+
+### **2. Table Creation: `authorities`**
+
+```sql
+create table authorities
+(
+    username varchar(50) not null,
+    authority varchar(50) not null,
+    constraint fk_authorities_users foreign key (username) references users (username)
+);
+```
+
+#### **Explanation:**
+- **`username`**: This column stores the username, and it must exist in the `users` table. It is defined as `varchar(50)` to match the `username` field from the `users` table. It is also marked as `not null`, ensuring that every row has a valid username.
+
+- **`authority`**: This column stores the authority (or role) associated with the user. It is defined as `varchar(50)`, allowing a role name like `ROLE_USER`, `ROLE_ADMIN`, etc. It is also marked as `not null`.
+
+- **Foreign Key Constraint (`fk_authorities_users`)**: This constraint ensures that the `username` in the `authorities` table must exist in the `users` table. In other words, you cannot assign an authority to a user that does not exist in the `users` table.
+
+#### **Example:**
+For example, assigning the role `ROLE_ADMIN` to `john_doe` would look like this:
+
+```sql
+INSERT INTO authorities (username, authority)
+VALUES ('john_doe', 'ROLE_ADMIN');
+```
+
+In this case:
+- `john_doe` is the user (referenced from the `users` table).
+- `ROLE_ADMIN` is the authority or role being assigned to this user.
+
+---
+
+### **3. Unique Index Creation:**
+
+```sql
+create unique index ix_auth_username on authorities (username, authority);
+```
+
+#### **Explanation:**
+- **Unique Index (`ix_auth_username`)**: This index ensures that each combination of `username` and `authority` in the `authorities` table is unique. This means a user can have multiple authorities (e.g., `ROLE_USER` and `ROLE_ADMIN`), but they cannot be assigned the same authority more than once.
+
+- **Purpose of Index**: Indexes improve the performance of queries, especially when searching by `username` and `authority`. The unique constraint here enforces that there are no duplicate authority entries for the same user.
+
+#### **Example:**
+The following scenario would **not** be allowed due to the unique constraint on `username` and `authority`:
+
+```sql
+INSERT INTO authorities (username, authority)
+VALUES ('john_doe', 'ROLE_ADMIN');
+```
+
+If `john_doe` already has `ROLE_ADMIN`, this insertion would fail, preventing duplicate role assignments for the same user.
+
+---
+
+### **Putting It All Together:**
+
+The `users` and `authorities` tables are used to manage users and their roles (or authorities) in many applications, particularly those using **Spring Security**.
+
+#### **How These Tables Work Together:**
+1. **`users` table**: Contains all the users and their basic information such as username, password, and whether the user is enabled or disabled.
+  
+2. **`authorities` table**: Contains the authorities (roles) for each user. Multiple authorities can be associated with a single user, allowing for fine-grained control over user permissions.
+
+#### **Example Use Case in an Authentication System**:
+1. A user tries to log in with a username (`john_doe`) and password.
+2. The system verifies the password by fetching the hashed password from the `users` table.
+3. If the password matches and the user is enabled, the system looks up the roles (authorities) for that user in the `authorities` table (e.g., `ROLE_ADMIN`, `ROLE_USER`).
+4. The user is authenticated and given access to resources based on the authorities (roles) assigned.
+
+---
+
+### **Full Example:**
+
+```sql
+-- Create the users table
+CREATE TABLE users (
+    username VARCHAR(50) NOT NULL PRIMARY KEY,
+    password VARCHAR(500) NOT NULL,
+    enabled BOOLEAN NOT NULL
+);
+
+-- Create the authorities table
+CREATE TABLE authorities (
+    username VARCHAR(50) NOT NULL,
+    authority VARCHAR(50) NOT NULL,
+    CONSTRAINT fk_authorities_users FOREIGN KEY (username) REFERENCES users (username)
+);
+
+-- Create unique index to ensure no duplicate authorities for the same user
+CREATE UNIQUE INDEX ix_auth_username ON authorities (username, authority);
+
+-- Insert a user into the users table
+INSERT INTO users (username, password, enabled) 
+VALUES ('john_doe', '$2a$10$CwTycUXWue0Thq9StjUM0uJ8rzn3yRUaTflIcXZoFZJG8bJFm3uUm', true);
+
+-- Assign roles to the user
+INSERT INTO authorities (username, authority)
+VALUES ('john_doe', 'ROLE_USER');
+
+INSERT INTO authorities (username, authority)
+VALUES ('john_doe', 'ROLE_ADMIN');
+```
+
+### **Summary:**
+- **`users` table**: Stores user details like `username`, `password`, and whether the user is enabled.
+- **`authorities` table**: Stores the roles/authorities assigned to users.
+- **Foreign key constraint**: Ensures that the `username` in `authorities` references an existing user in `users`.
+- **Unique index**: Prevents duplicate role entries for the same user.
+
 ## 004 Using JdbcUserDetailsManager to perform authentication
 ## 005 Creating our own custom tables for Authentication
 ## 006 Creating JPA Entity and repository classes for new table
