@@ -617,13 +617,507 @@ By integrating this into your Spring Security application:
 This is an important step toward providing robust protection for user accounts in your application.
 
 ## 004 Deep Dive of UserDetailsService & UserDetailsManager Interfaces
+
+![alt text](image-4.png)
+
+The image provided outlines the key components and relationships involved in **User Management** within the **Spring Security** framework. Let’s break down the concepts deeply, with examples.
+
+---
+
+### **1. UserDetailsService (Interface)**
+
+The **`UserDetailsService`** interface is a core component in Spring Security that is responsible for **loading user-specific data**. Typically, it's used during authentication to retrieve user details (like username, password, and roles) from a data source (like an in-memory store, database, or LDAP).
+
+- **Method**:
+  - `loadUserByUsername(String username)`: This method is used to fetch a user’s details by their username. It returns an implementation of the `UserDetails` interface that contains the user’s information.
+
+#### Example:
+If you have a user database or in-memory user store, you implement `UserDetailsService` to retrieve user information by username. Here’s a simple example of how this might look in code:
+
 ```java
+@Service
+public class CustomUserDetailsService implements UserDetailsService {
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        // Example: Fetch the user from a database
+        UserDetails user = User.withUsername("user1")
+                .password("{bcrypt}$2a$10$WwU.E/h43lB8KdYZIq1/Mu.tdKieLqFneU3OiZ/NE7EoC8sgOq5Wu")
+                .roles("USER").build();
+        
+        return user;
+    }
+}
+```
+
+This interface is a simple mechanism to fetch user details based on a username, which is typically used during authentication.
+
+---
+
+### **2. UserDetailsManager (Interface)**
+
+**`UserDetailsManager`** is an extension of `UserDetailsService`, offering more functionality for **managing users**. It provides methods to create, update, delete, and verify the existence of a user, making it useful in cases where you need full user management capabilities (not just authentication).
+
+- **Methods**:
+  - `createUser(UserDetails user)`: Adds a new user to the system.
+  - `updateUser(UserDetails user)`: Updates the details of an existing user.
+  - `deleteUser(String username)`: Deletes a user by their username.
+  - `changePassword(String oldPwd, String newPwd)`: Changes the password for a user.
+  - `userExists(String username)`: Checks whether a user exists by their username.
+
+#### Example:
+In a typical application, you might want to allow administrators to manage users. You can use `UserDetailsManager` to provide functionality for adding, updating, and deleting users.
+
+```java
+@Service
+public class CustomUserDetailsManager implements UserDetailsManager {
+
+    private final Map<String, UserDetails> users = new HashMap<>();
+
+    @Override
+    public void createUser(UserDetails user) {
+        users.put(user.getUsername(), user);
+    }
+
+    @Override
+    public void updateUser(UserDetails user) {
+        users.put(user.getUsername(), user);
+    }
+
+    @Override
+    public void deleteUser(String username) {
+        users.remove(username);
+    }
+
+    @Override
+    public void changePassword(String oldPassword, String newPassword) {
+        // This can be customized based on how passwords are stored/verified
+    }
+
+    @Override
+    public boolean userExists(String username) {
+        return users.containsKey(username);
+    }
+
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        return users.get(username);
+    }
+}
+```
+
+### **3. Implementations of `UserDetailsManager`**
+
+Spring Security provides several built-in implementations of `UserDetailsManager`, each tailored to specific use cases or data sources.
+
+#### a. **InMemoryUserDetailsManager**
+- This class is used to manage users in-memory (i.e., stored in application memory rather than a persistent data store).
+- **Example**: This is commonly used in small applications, testing, or development environments where you don't need a persistent database to store user credentials.
+
+```java
+@Bean
+public InMemoryUserDetailsManager inMemoryUserDetailsManager() {
+    UserDetails user = User.withUsername("user")
+            .password("{noop}password")
+            .roles("USER")
+            .build();
+
+    return new InMemoryUserDetailsManager(user);
+}
+```
+
+#### b. **JdbcUserDetailsManager**
+- This implementation works with a relational database. It allows you to manage users and store their credentials in a database using **JDBC**.
+- **Example**: When you want to store user information in a database, you can use this implementation. Spring provides default SQL queries to fetch users and roles, but you can customize them if needed.
+
+```java
+@Bean
+public JdbcUserDetailsManager jdbcUserDetailsManager(DataSource dataSource) {
+    return new JdbcUserDetailsManager(dataSource);
+}
+```
+
+#### c. **LdapUserDetailsManager**
+- This implementation works with an **LDAP** directory, which is often used in corporate environments for user authentication and authorization.
+- **Example**: If your application needs to authenticate users against an LDAP server, this is the implementation to use.
+
+```java
+@Bean
+public LdapUserDetailsManager ldapUserDetailsManager(LdapContextSource contextSource) {
+    return new LdapUserDetailsManager(contextSource);
+}
+```
+
+### **4. UserDetails (Interface)**
+
+The **`UserDetails`** interface represents the **core user information** required by Spring Security. This is what `UserDetailsService` returns when loading a user by username. The `UserDetails` object contains:
+- Username
+- Password (usually hashed)
+- Authorities/Roles
+- Account status (whether the account is locked, expired, etc.)
+
+#### Example:
+When you create a user in Spring Security, you're essentially creating a `UserDetails` object, like so:
+
+```java
+UserDetails user = User.withUsername("user")
+        .password("{bcrypt}$2y$12$...")
+        .authorities("ROLE_USER")
+        .build();
+```
+
+- The password is typically encoded (e.g., using bcrypt).
+- The authorities (`ROLE_USER`) determine the permissions this user has.
+
+### **5. How All These Interfaces Work Together**
+
+1. **Authentication**: 
+   - When a user tries to log in, Spring Security will call the `loadUserByUsername` method from the `UserDetailsService` or `UserDetailsManager` implementation to fetch the user’s details.
+
+2. **User Management**:
+   - For applications that require user management, the `UserDetailsManager` interface allows creating, updating, and deleting users. For example, an admin might use an interface to add new users via `createUser(UserDetails user)`.
+
+3. **Integration with Various Data Sources**:
+   - You can choose between `InMemoryUserDetailsManager`, `JdbcUserDetailsManager`, and `LdapUserDetailsManager` based on where you store user information (in-memory, database, or LDAP).
+
+4. **Customization**:
+   - These classes and interfaces provide extensibility. If your application requires custom user management (e.g., fetching users from a NoSQL database), you can implement `UserDetailsService` or `UserDetailsManager` to suit your specific needs.
+
+---
+
+### **Example Scenario: Adding a New User**
+
+Let's say you want to allow an admin to add a new user:
+
+```java
+public void addUser(String username, String password, String role) {
+    UserDetails user = User.withUsername(username)
+            .password(passwordEncoder.encode(password))
+            .authorities(role)
+            .build();
+    
+    userDetailsManager.createUser(user);
+}
+```
+
+In this example, you're creating a `UserDetails` object for a new user, encoding their password using the `PasswordEncoder`, and saving the user using the `UserDetailsManager`.
+
+---
+
+### **Summary**
+
+- **`UserDetailsService`** is used for retrieving user details during authentication.
+- **`UserDetailsManager`** extends `UserDetailsService` and provides methods for user management (like creating, updating, and deleting users).
+- Spring Security provides several implementations of these interfaces, such as `InMemoryUserDetailsManager`, `JdbcUserDetailsManager`, and `LdapUserDetailsManager`.
+- `UserDetails` represents the user’s core information (username, password, authorities, etc.).
+  
+This design ensures that Spring Security can easily adapt to different data sources (in-memory, database, LDAP) and provides flexibility for managing user accounts.
+
+![alt text](image-5.png)
+
+```java
+/*
+ * Copyright 2004, 2005, 2006 Acegi Technology Pty Limited
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.springframework.security.core.userdetails;
+
+/**
+ * Core interface which loads user-specific data.
+ * <p>
+ * It is used throughout the framework as a user DAO and is the strategy used by the
+ * {@link org.springframework.security.authentication.dao.DaoAuthenticationProvider
+ * DaoAuthenticationProvider}.
+ *
+ * <p>
+ * The interface requires only one read-only method, which simplifies support for new
+ * data-access strategies.
+ *
+ * @author Ben Alex
+ * @see org.springframework.security.authentication.dao.DaoAuthenticationProvider
+ * @see UserDetails
+ */
+public interface UserDetailsService {
+
+	/**
+	 * Locates the user based on the username. In the actual implementation, the search
+	 * may possibly be case sensitive, or case insensitive depending on how the
+	 * implementation instance is configured. In this case, the <code>UserDetails</code>
+	 * object that comes back may have a username that is of a different case than what
+	 * was actually requested..
+	 * @param username the username identifying the user whose data is required.
+	 * @return a fully populated user record (never <code>null</code>)
+	 * @throws UsernameNotFoundException if the user could not be found or the user has no
+	 * GrantedAuthority
+	 */
+	UserDetails loadUserByUsername(String username) throws UsernameNotFoundException;
+
+}
 
 ```
 
+![alt text](image-7.png)
+
 ```java
+/*
+ * Copyright 2002-2016 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.springframework.security.provisioning;
+
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+
+/**
+ * An extension of the {@link UserDetailsService} which provides the ability to create new
+ * users and update existing ones.
+ *
+ * @author Luke Taylor
+ * @since 2.0
+ */
+public interface UserDetailsManager extends UserDetailsService {
+
+	/**
+	 * Create a new user with the supplied details.
+	 */
+	void createUser(UserDetails user);
+
+	/**
+	 * Update the specified user.
+	 */
+	void updateUser(UserDetails user);
+
+	/**
+	 * Remove the user with the given login name from the system.
+	 */
+	void deleteUser(String username);
+
+	/**
+	 * Modify the current user's password. This should change the user's password in the
+	 * persistent user repository (database, LDAP etc).
+	 * @param oldPassword current password (for re-authentication if required)
+	 * @param newPassword the password to change to
+	 */
+	void changePassword(String oldPassword, String newPassword);
+
+	/**
+	 * Check if a user with the supplied login name exists in the system.
+	 */
+	boolean userExists(String username);
+
+}
 
 ```
+
+
+![alt text](image-6.png)
+
+```java
+/*
+ * Copyright 2002-2022 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.springframework.security.provisioning;
+
+import java.util.Collection;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import org.springframework.core.log.LogMessage;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.context.SecurityContextHolderStrategy;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsPasswordService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.core.userdetails.memory.UserAttribute;
+import org.springframework.security.core.userdetails.memory.UserAttributeEditor;
+import org.springframework.util.Assert;
+
+/**
+ * Non-persistent implementation of {@code UserDetailsManager} which is backed by an
+ * in-memory map.
+ * <p>
+ * Mainly intended for testing and demonstration purposes, where a full blown persistent
+ * system isn't required.
+ *
+ * @author Luke Taylor
+ * @since 3.1
+ */
+public class InMemoryUserDetailsManager implements UserDetailsManager, UserDetailsPasswordService {
+
+	protected final Log logger = LogFactory.getLog(getClass());
+
+	private final Map<String, MutableUserDetails> users = new HashMap<>();
+
+	private SecurityContextHolderStrategy securityContextHolderStrategy = SecurityContextHolder
+		.getContextHolderStrategy();
+
+	private AuthenticationManager authenticationManager;
+
+	public InMemoryUserDetailsManager() {
+	}
+
+	public InMemoryUserDetailsManager(Collection<UserDetails> users) {
+		for (UserDetails user : users) {
+			createUser(user);
+		}
+	}
+
+	public InMemoryUserDetailsManager(UserDetails... users) {
+		for (UserDetails user : users) {
+			createUser(user);
+		}
+	}
+
+	public InMemoryUserDetailsManager(Properties users) {
+		Enumeration<?> names = users.propertyNames();
+		UserAttributeEditor editor = new UserAttributeEditor();
+		while (names.hasMoreElements()) {
+			String name = (String) names.nextElement();
+			editor.setAsText(users.getProperty(name));
+			UserAttribute attr = (UserAttribute) editor.getValue();
+			Assert.notNull(attr,
+					() -> "The entry with username '" + name + "' could not be converted to an UserDetails");
+			createUser(createUserDetails(name, attr));
+		}
+	}
+
+	private User createUserDetails(String name, UserAttribute attr) {
+		return new User(name, attr.getPassword(), attr.isEnabled(), true, true, true, attr.getAuthorities());
+	}
+
+	@Override
+	public void createUser(UserDetails user) {
+		Assert.isTrue(!userExists(user.getUsername()), "user should not exist");
+		this.users.put(user.getUsername().toLowerCase(), new MutableUser(user));
+	}
+
+	@Override
+	public void deleteUser(String username) {
+		this.users.remove(username.toLowerCase());
+	}
+
+	@Override
+	public void updateUser(UserDetails user) {
+		Assert.isTrue(userExists(user.getUsername()), "user should exist");
+		this.users.put(user.getUsername().toLowerCase(), new MutableUser(user));
+	}
+
+	@Override
+	public boolean userExists(String username) {
+		return this.users.containsKey(username.toLowerCase());
+	}
+
+	@Override
+	public void changePassword(String oldPassword, String newPassword) {
+		Authentication currentUser = this.securityContextHolderStrategy.getContext().getAuthentication();
+		if (currentUser == null) {
+			// This would indicate bad coding somewhere
+			throw new AccessDeniedException(
+					"Can't change password as no Authentication object found in context " + "for current user.");
+		}
+		String username = currentUser.getName();
+		this.logger.debug(LogMessage.format("Changing password for user '%s'", username));
+		// If an authentication manager has been set, re-authenticate the user with the
+		// supplied password.
+		if (this.authenticationManager != null) {
+			this.logger.debug(LogMessage.format("Reauthenticating user '%s' for password change request.", username));
+			this.authenticationManager
+				.authenticate(UsernamePasswordAuthenticationToken.unauthenticated(username, oldPassword));
+		}
+		else {
+			this.logger.debug("No authentication manager set. Password won't be re-checked.");
+		}
+		MutableUserDetails user = this.users.get(username);
+		Assert.state(user != null, "Current user doesn't exist in database.");
+		user.setPassword(newPassword);
+	}
+
+	@Override
+	public UserDetails updatePassword(UserDetails user, String newPassword) {
+		String username = user.getUsername();
+		MutableUserDetails mutableUser = this.users.get(username.toLowerCase());
+		mutableUser.setPassword(newPassword);
+		return mutableUser;
+	}
+
+	@Override
+	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+		UserDetails user = this.users.get(username.toLowerCase());
+		if (user == null) {
+			throw new UsernameNotFoundException(username);
+		}
+		return new User(user.getUsername(), user.getPassword(), user.isEnabled(), user.isAccountNonExpired(),
+				user.isCredentialsNonExpired(), user.isAccountNonLocked(), user.getAuthorities());
+	}
+
+	/**
+	 * Sets the {@link SecurityContextHolderStrategy} to use. The default action is to use
+	 * the {@link SecurityContextHolderStrategy} stored in {@link SecurityContextHolder}.
+	 *
+	 * @since 5.8
+	 */
+	public void setSecurityContextHolderStrategy(SecurityContextHolderStrategy securityContextHolderStrategy) {
+		Assert.notNull(securityContextHolderStrategy, "securityContextHolderStrategy cannot be null");
+		this.securityContextHolderStrategy = securityContextHolderStrategy;
+	}
+
+	public void setAuthenticationManager(AuthenticationManager authenticationManager) {
+		this.authenticationManager = authenticationManager;
+	}
+
+}
+
+```
+
+
+
+
 ## 005 Deep Dive of UserDetails & Authentication interfaces
 
 ```java
