@@ -1120,9 +1120,101 @@ public class InMemoryUserDetailsManager implements UserDetailsManager, UserDetai
 
 ## 005 Deep Dive of UserDetails & Authentication interfaces
 
-```java
+![alt text](image-8.png)
 
-```
-```java
+The image you provided explains the relationship between **UserDetails** and **Authentication** in **Spring Security**, highlighting two main components that store and manage user information. Let's break down the components, the relationship between them, and why they both exist.
 
+---
+
+### **1. UserDetails & User**
+
+- **`UserDetails` (Interface)**: This interface is the central place where user information (like username, password, and roles) is stored in Spring Security.
+  
+  - **getPassword()**: Returns the password of the user (usually hashed).
+  - **getUsername()**: Returns the username of the user (used for login).
+  - **getAuthorities()**: Retrieves the roles or authorities (permissions) assigned to the user.
+  - **isAccountNonExpired()**, **isAccountNonLocked()**, **isCredentialsNonExpired()**, **isEnabled()**: These methods return the account status flags, checking whether the account is expired, locked, disabled, or if the credentials have expired.
+
+- **`User` (Class)**: This is the default implementation of `UserDetails`. It provides a simple way to create a user object with a username, password, and authorities. Spring offers this class as a utility for quick setup, but in a real-world scenario, you might create your own `UserDetails` implementation that fetches data from a database or another storage system.
+
+#### Example:
+```java
+UserDetails user = User.withUsername("user")
+        .password("{bcrypt}$2a$10...")
+        .authorities("ROLE_USER")
+        .build();
 ```
+
+In this example, we create a user with a username, password, and authorities (roles). This user object is often stored in an **in-memory store**, database, or fetched from another source like LDAP.
+
+- **When is UserDetails used?**  
+  `UserDetails` is primarily used when loading user information from a storage system. For example, when Spring Security wants to authenticate a user, it calls the `loadUserByUsername()` method in `UserDetailsService`, which returns a `UserDetails` object. This object contains all the necessary user data for authentication and authorization.
+
+---
+
+### **2. Principal & Authentication**
+
+- **`Principal` (Interface)**: The **Principal** is a higher-level interface representing the user’s identity. It contains methods like `getName()` to retrieve the username. The `Principal` is part of the `Authentication` object.
+
+- **`Authentication` (Interface)**: This interface represents the user’s authentication information. It contains the following key methods:
+  - **getPrincipal()**: Returns the user object (the `UserDetails` object).
+  - **getAuthorities()**: Returns the authorities (roles/permissions) granted to the user.
+  - **getCredentials()**: Returns the credentials (such as the password) that were used to authenticate the user.
+  - **isAuthenticated()**: Returns `true` or `false` depending on whether the user has been authenticated.
+  - **setAuthenticated()**: Allows you to set whether the user is authenticated.
+  - **eraseCredentials()**: Allows the credentials to be removed from the `Authentication` object, for security purposes (to avoid storing sensitive information like the password).
+
+- **UsernamePasswordAuthenticationToken (Class)**: This is a commonly used class that implements `Authentication` and is specifically used when authenticating users based on their username and password. It contains all the information (username, password, roles) for the authentication process.
+
+#### Example:
+After the user logs in, Spring Security creates an `Authentication` object (often `UsernamePasswordAuthenticationToken`) to store the user’s credentials, authorities, and principal. This object is then stored in the **Security Context** and used to verify if the user is authenticated in subsequent requests.
+
+```java
+UsernamePasswordAuthenticationToken authentication = 
+    new UsernamePasswordAuthenticationToken(userDetails, password, authorities);
+```
+
+- **When is Authentication used?**  
+  The `Authentication` object is used to determine whether the user has been authenticated and to store the user’s credentials and authorities. This object is returned by the **AuthenticationProvider** after successfully verifying the user’s identity and is later placed in the **Security Context** to persist the authentication status.
+
+---
+
+### **3. Relationship Between UserDetails and Authentication**
+
+- **UserDetails** is used for **loading** and **storing** user data from storage systems (e.g., databases, LDAP). It is returned by `UserDetailsService` or `UserDetailsManager` when Spring Security needs to authenticate a user or load user details.
+
+- **Authentication** is used for **processing** authentication. It contains information about the user, credentials, and authorities after authentication has occurred. Once a user is authenticated, Spring Security generates an `Authentication` object that holds the **Principal** (which is often a `UserDetails` instance) and the user’s credentials and authorities.
+
+- **Why do we have two separate ways to store login user details?**
+  1. **UserDetails** focuses on **loading** user information from storage (like a database or LDAP), whereas **Authentication** deals with **authentication** (whether a user is authenticated, and if so, what authorities they have).
+  2. **UserDetails** exists independently of the authentication process. It's simply a container for user data.
+  3. **Authentication** is generated dynamically during the authentication process and holds runtime information (like whether the user is authenticated).
+
+---
+
+### **Authentication Flow Overview**
+
+1. **User submits credentials** (e.g., username and password).
+2. Spring Security invokes the **`UserDetailsService`** to load the user information from storage (e.g., a database).
+3. Spring Security creates a **`UsernamePasswordAuthenticationToken`** with the user’s credentials and roles.
+4. The **AuthenticationProvider** verifies the credentials and generates an **`Authentication`** object.
+5. This **`Authentication`** object is stored in the **Security Context** to persist the authentication status for future requests.
+
+---
+
+### **Example Scenario**
+
+1. A user submits a form to log in with a username and password.
+2. Spring Security calls `UserDetailsService.loadUserByUsername("john")`, which returns a `UserDetails` object containing the user's username, password, and roles.
+3. Spring Security creates a `UsernamePasswordAuthenticationToken` with the `UserDetails` object.
+4. The `AuthenticationManager` checks if the credentials are valid. If valid, it marks the `Authentication` object as authenticated (`isAuthenticated() = true`).
+5. This `Authentication` object is placed in the **Security Context**.
+6. Future requests check the **Security Context** to determine whether the user is authenticated and what roles/permissions they have.
+
+---
+
+### **Summary**
+
+- **UserDetails** is responsible for loading user information (e.g., from a database or LDAP).
+- **Authentication** represents the user's current authentication status and stores the authenticated user’s data, credentials, and roles.
+- Both are essential for managing security in a Spring Security application, with `UserDetails` focused on retrieving user data and `Authentication` focused on verifying and storing the user's authentication state.
