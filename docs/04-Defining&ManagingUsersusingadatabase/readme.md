@@ -373,7 +373,552 @@ VALUES ('john_doe', 'ROLE_ADMIN');
 - **Unique index**: Prevents duplicate role entries for the same user.
 
 ## 004 Using JdbcUserDetailsManager to perform authentication
+
+```xml
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-jdbc</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.mysql</groupId>
+            <artifactId>mysql-connector-j</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+```
+
+Let's break down the Spring Boot dependencies you've included in your `pom.xml` file and explain what each of them brings to the application, with examples:
+
+### 1. **Spring Boot Starter Data JPA**
+
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-data-jpa</artifactId>
+</dependency>
+```
+
+#### **Explanation:**
+
+- **Spring Boot Starter Data JPA** is a starter dependency that simplifies the use of **Java Persistence API (JPA)** with **Spring Data**. JPA is the Java specification for managing relational data in Java applications, and Spring Data JPA provides a layer to easily integrate JPA with Spring applications.
+
+- This dependency automatically brings in Hibernate (as the default JPA provider) and other necessary libraries for interacting with a relational database using JPA.
+
+#### **What it Provides:**
+1. **Repository Support**: You can define repositories as interfaces that extend `JpaRepository` and have CRUD (Create, Read, Update, Delete) functionality without writing any SQL queries.
+   
+2. **Entity Mapping**: JPA allows you to map Java objects (called entities) to database tables.
+   
+3. **Transaction Management**: Provides out-of-the-box transaction management.
+
+#### **Example:**
+
+1. **Entity Class (Mapping to Database Table)**:
+
+```java
+import javax.persistence.Entity;
+import javax.persistence.Id;
+
+@Entity
+public class User {
+    @Id
+    private String username;
+    private String password;
+    private Boolean enabled;
+
+    // Getters and Setters
+}
+```
+
+2. **Repository Interface**:
+
+```java
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface UserRepository extends JpaRepository<User, String> {
+    // Custom query methods can be added here if necessary
+}
+```
+
+3. **Service Layer Example**:
+
+```java
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+@Service
+public class UserService {
+    @Autowired
+    private UserRepository userRepository;
+
+    public User findUserByUsername(String username) {
+        return userRepository.findById(username).orElse(null);
+    }
+
+    public User saveUser(User user) {
+        return userRepository.save(user);
+    }
+}
+```
+
+### 2. **Spring Boot Starter JDBC**
+
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-jdbc</artifactId>
+</dependency>
+```
+
+#### **Explanation:**
+
+- **Spring Boot Starter JDBC** provides support for accessing relational databases through **JDBC (Java Database Connectivity)**. It includes **Spring's JDBC support**, which provides utilities to simplify database interaction.
+
+- Unlike JPA, JDBC works directly with SQL queries, giving you more control over the SQL but also requiring you to write more boilerplate code for handling result sets, transactions, etc.
+
+#### **What it Provides:**
+1. **JdbcTemplate**: A Spring utility class that helps you perform common JDBC operations (e.g., querying, updating) in a more simplified and consistent way.
+
+2. **Connection Pooling**: It integrates well with popular connection pools like **HikariCP** for efficient connection management.
+
+#### **Example:**
+
+1. **JdbcTemplate Usage**:
+
+```java
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+
+@Repository
+public class UserJdbcRepository {
+    private final JdbcTemplate jdbcTemplate;
+
+    public UserJdbcRepository(JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
+    }
+
+    public List<User> findAllUsers() {
+        String sql = "SELECT * FROM users";
+        return jdbcTemplate.query(sql, (rs, rowNum) -> new User(
+                rs.getString("username"),
+                rs.getString("password"),
+                rs.getBoolean("enabled")
+        ));
+    }
+}
+```
+
+In this example, **JdbcTemplate** is used to query the database directly using SQL. It maps the result set to a `User` object.
+
+### 3. **MySQL Connector-J**
+
+```xml
+<dependency>
+    <groupId>com.mysql</groupId>
+    <artifactId>mysql-connector-j</artifactId>
+    <scope>runtime</scope>
+</dependency>
+```
+
+#### **Explanation:**
+
+- **MySQL Connector-J** is the official JDBC driver for MySQL. It allows your Spring Boot application to interact with a **MySQL database** using the JDBC API.
+
+- With this driver, your application can run SQL queries against a MySQL database, insert, update, or delete data.
+
+#### **What it Provides:**
+
+1. **JDBC Driver**: Enables your application to connect to a MySQL database at runtime using JDBC. Without this driver, your application wouldn’t know how to communicate with a MySQL database.
+
+2. **Seamless Integration with Spring Data JPA or Spring JDBC**: When using Spring Data JPA or Spring JDBC, you can use this driver to connect to a MySQL database with minimal configuration.
+
+#### **Example Configuration in `application.properties`:**
+
+To connect the application to a MySQL database, you would configure the database connection properties like this:
+
+```properties
+spring.datasource.url=jdbc:mysql://localhost:3306/bankdb
+spring.datasource.username=root
+spring.datasource.password=root
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
+```
+
+#### **Example:**
+
+Once the dependencies are in place and the configuration is done, Spring Boot will automatically:
+- Connect to the MySQL database.
+- Handle database migrations (if needed) using JPA or custom SQL scripts.
+
+```java
+// Your repository (e.g., UserRepository) will use MySQL in the background.
+```
+
+### **Conclusion:**
+- The **Spring Boot Starter Data JPA** dependency is perfect for working with relational databases using JPA (object-relational mapping), providing repository interfaces for easy CRUD operations without writing SQL.
+  
+- The **Spring Boot Starter JDBC** dependency gives you direct access to the database through SQL with the help of Spring's JdbcTemplate for database interactions.
+
+- The **MySQL Connector-J** dependency is required to enable your Spring Boot application to communicate with MySQL through JDBC. It acts as a driver to allow database operations against the MySQL database.
+
+These dependencies combined allow you to choose between high-level database abstraction (Spring Data JPA) or low-level database operations (JDBC), while ensuring that the application can communicate with MySQL.
+
 ## 005 Creating our own custom tables for Authentication
+
+The configuration properties provided in your example are for connecting a **Spring Boot** application to a **MySQL** database and controlling how **JPA** (Java Persistence API) and **Hibernate** interact with the database. These properties are externalized, meaning they can be defined dynamically using environment variables. Let’s break down each property and explain it with examples.
+
+---
+
+### 1. **`spring.datasource.url`**
+```properties
+spring.datasource.url=jdbc:mysql://${MY_SQL_HOST:localhost}:${MY_SQL_PORT:3306}/${MY_SQL_DATABASE_NAME:bankdb}
+```
+
+#### **Explanation:**
+
+This property defines the **URL** for connecting to the MySQL database. Let’s break down the components:
+
+- **`${MY_SQL_HOST:localhost}`**: This means that the `MY_SQL_HOST` environment variable is expected to hold the MySQL database's hostname or IP address. If the environment variable is not provided, it defaults to `localhost`. This is helpful when deploying the app in different environments (development, staging, production) with different database hosts.
+  
+- **`${MY_SQL_PORT:3306}`**: This part refers to the MySQL database's port number. By default, it is set to `3306` (which is the default MySQL port), but you can change it by setting the `MY_SQL_PORT` environment variable.
+
+- **`${MY_SQL_DATABASE_NAME:bankdb}`**: This is the name of the MySQL database. By default, it's set to `bankdb`, but you can override it using the `MY_SQL_DATABASE_NAME` environment variable.
+
+#### **Practical Example:**
+If you are running the Spring Boot app locally with the default settings, this URL will resolve to:
+```
+jdbc:mysql://localhost:3306/bankdb
+```
+
+If you are running the app on a remote server, you can define these environment variables to point to a different host or database, like this:
+```bash
+export MY_SQL_HOST=remotedb.mydomain.com
+export MY_SQL_PORT=3307
+export MY_SQL_DATABASE_NAME=prod_db
+```
+
+Then, the URL will resolve to:
+```
+jdbc:mysql://remotedb.mydomain.com:3307/prod_db
+```
+
+---
+
+### 2. **`spring.datasource.username`**
+```properties
+spring.datasource.username=${MYSQL_USERNAME:root}
+```
+
+#### **Explanation:**
+
+This property defines the **username** used to authenticate with the MySQL database. 
+
+- **`${MYSQL_USERNAME:root}`**: It tries to fetch the `MYSQL_USERNAME` environment variable. If it's not set, it defaults to `root`. 
+
+This is useful because in development, you might use `root` as the default username, but in production, you will likely want a different username.
+
+#### **Practical Example:**
+
+If you don't provide any environment variable, it defaults to `root`. But if you are connecting to a production database, you can set a different username:
+```bash
+export MYSQL_USERNAME=prod_user
+```
+
+---
+
+### 3. **`spring.datasource.password`**
+```properties
+spring.datasource.password=${MYSQL_PASSWORD:root}
+```
+
+#### **Explanation:**
+
+This property defines the **password** used to authenticate with the MySQL database.
+
+- **`${MYSQL_PASSWORD:root}`**: It tries to fetch the `MYSQL_PASSWORD` environment variable. If not set, it defaults to `root`.
+
+#### **Practical Example:**
+
+For local development, the default `root` password might be fine, but for production, you need to set a stronger password:
+```bash
+export MYSQL_PASSWORD=supersecretpassword
+```
+
+This externalization allows for better security, as sensitive information like passwords should not be hardcoded.
+
+---
+
+### 4. **`spring.jpa.show-sql`**
+```properties
+spring.jpa.show-sql=${JPA_SHOW_SQL:true}
+```
+
+#### **Explanation:**
+
+This property controls whether **Hibernate** (the default JPA provider for Spring Boot) will log the SQL statements it generates. 
+
+- **`${JPA_SHOW_SQL:true}`**: If the `JPA_SHOW_SQL` environment variable is set, it will take that value (either `true` or `false`). If the environment variable is not set, it defaults to `true`.
+
+#### **Practical Example:**
+
+When this property is `true`, you will see SQL queries logged in the console, like this:
+```sql
+Hibernate: 
+    select
+        user0_.username as username1_0_0_,
+        user0_.password as password2_0_0_,
+        user0_.enabled as enabled3_0_0_ 
+    from
+        users user0_ 
+    where
+        user0_.username=?
+```
+
+In production, you might want to disable SQL logging for performance reasons and to avoid exposing sensitive SQL statements:
+```bash
+export JPA_SHOW_SQL=false
+```
+
+---
+
+### 5. **`spring.jpa.properties.hibernate.format_sql`**
+```properties
+spring.jpa.properties.hibernate.format_sql=${HIBERNATE_FORMAT_SQL:true}
+```
+
+#### **Explanation:**
+
+This property controls whether the SQL queries printed by Hibernate are **formatted** (i.e., pretty-printed with line breaks and indentation).
+
+- **`${HIBERNATE_FORMAT_SQL:true}`**: It fetches the `HIBERNATE_FORMAT_SQL` environment variable. If it is not set, the default value is `true`.
+
+#### **Practical Example:**
+
+If `format_sql` is enabled, your SQL output will look like this:
+
+```sql
+select
+    user0_.username as username1_0_0_,
+    user0_.password as password2_0_0_,
+    user0_.enabled as enabled3_0_0_
+from
+    users user0_
+where
+    user0_.username=?
+```
+
+If `format_sql` is disabled, it would print the SQL in a single line, which is more compact but harder to read:
+```sql
+select user0_.username as username1_0_0_, user0_.password as password2_0_0_, user0_.enabled as enabled3_0_0_ from users user0_ where user0_.username=?
+```
+
+For development purposes, it's useful to have pretty-printed SQL, but for production, you might want to disable it for performance reasons.
+
+---
+
+### **Benefits of Using Externalized Configuration**
+
+1. **Flexibility**: You can deploy the same application in multiple environments (development, staging, production) without changing the code. You only need to configure different environment variables for each environment.
+
+2. **Security**: Sensitive information like passwords, database URLs, and usernames are not hardcoded into the application. Instead, they can be provided as environment variables, making it easier to manage securely.
+
+3. **Maintainability**: Externalizing these properties into environment variables or a `properties` file makes the code cleaner and more maintainable, as you don’t have to modify it for every environment-specific change.
+
+---
+
+### **Complete Example Configuration**
+
+Here's how your full configuration might look in the `application.properties` file:
+```properties
+spring.datasource.url=jdbc:mysql://${MY_SQL_HOST:localhost}:${MY_SQL_PORT:3306}/${MY_SQL_DATABASE_NAME:bankdb}
+spring.datasource.username=${MYSQL_USERNAME:root}
+spring.datasource.password=${MYSQL_PASSWORD:root}
+spring.jpa.show-sql=${JPA_SHOW_SQL:true}
+spring.jpa.properties.hibernate.format_sql=${HIBERNATE_FORMAT_SQL:true}
+```
+
+For local development, it will default to connecting to a MySQL database at `localhost:3306` with the `bankdb` database, `root` username, and `root` password. In production, you can override these settings by providing environment variables for the `MYSQL_USERNAME`, `MYSQL_PASSWORD`, and database host.
+
+This approach allows for flexibility and security while ensuring that the application can easily switch between different environments without code changes.
+
+```java
+package com.wchamara.springsecurity.config;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.password.CompromisedPasswordChecker;
+import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.factory.PasswordEncoderFactories;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.provisioning.JdbcUserDetailsManager;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.password.HaveIBeenPwnedRestApiPasswordChecker;
+
+import javax.sql.DataSource;
+
+@Configuration
+@EnableWebSecurity
+public class ProjectSecurityConfig {
+
+
+    @Bean
+    SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
+//        http.authorizeHttpRequests((requests) -> requests.anyRequest().denyAll());
+//        http.authorizeHttpRequests((requests) -> requests.anyRequest().permitAll());
+        http.authorizeHttpRequests((requests) -> requests
+                .requestMatchers("myAccount", "myBalance", "myCards", "myLoans").authenticated()
+                .requestMatchers("notices", "welcome", "contact", "error").permitAll()
+        );
+        http.formLogin(Customizer.withDefaults());
+        http.httpBasic(Customizer.withDefaults());
+//        http.formLogin(AbstractHttpConfigurer::disable);
+//        http.httpBasic(AbstractHttpConfigurer::disable);
+        return http.build();
+    }
+
+    @Bean
+    public UserDetailsService userDetailsService(DataSource dataSource) {
+        return new JdbcUserDetailsManager(dataSource);
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return PasswordEncoderFactories.createDelegatingPasswordEncoder();
+    }
+
+    @Bean
+    public CompromisedPasswordChecker compromisedPasswordChecker() {
+        return new HaveIBeenPwnedRestApiPasswordChecker();
+    }
+
+
+}
+
+```
+
+The method:
+
+```java
+@Bean
+public UserDetailsService userDetailsService(DataSource dataSource) {
+    return new JdbcUserDetailsManager(dataSource);
+}
+```
+
+is responsible for defining a `UserDetailsService` bean in a Spring Security application. This service is used to retrieve user details from a relational database (usually for authentication and authorization purposes). Here's a deeper explanation of how it works:
+
+### 1. **What is `UserDetailsService`?**
+`UserDetailsService` is an interface in Spring Security that provides a method to load user-specific data (i.e., a user’s credentials and authorities) from a data source. It is used to retrieve user details that Spring Security requires to perform authentication and role-based access control.
+
+### 2. **What is `JdbcUserDetailsManager`?**
+`JdbcUserDetailsManager` is a class that implements `UserDetailsService` and provides JDBC-based functionality. It retrieves user details (such as username, password, and authorities) from a relational database using SQL queries. It also has methods to manage user records, such as creating, updating, and deleting users.
+
+### 3. **What Does `DataSource` Do?**
+`DataSource` is a standard interface used to establish a connection to a relational database. The `JdbcUserDetailsManager` class uses the `DataSource` to run SQL queries against the database, allowing Spring Security to load user details (e.g., usernames, passwords, roles) during authentication.
+
+The `DataSource` can be configured to connect to a variety of databases, such as MySQL, PostgreSQL, or H2 (an in-memory database), depending on your application setup.
+
+### 4. **How Does `JdbcUserDetailsManager` Work?**
+`JdbcUserDetailsManager` executes specific SQL queries to retrieve and manage user details from the database. It expects the user-related data to be stored in specific tables. Here’s a basic structure of how the database tables are expected to look:
+
+#### a) **Users Table**
+This table holds user credentials like username and password. A common structure for the `users` table might look like this:
+
+```sql
+CREATE TABLE users (
+    username VARCHAR(50) NOT NULL PRIMARY KEY,
+    password VARCHAR(100) NOT NULL,
+    enabled BOOLEAN NOT NULL
+);
+```
+
+- **username**: The user's unique identifier.
+- **password**: The hashed password (stored in the database in a secure format).
+- **enabled**: A flag that indicates whether the user is active or not (true = enabled, false = disabled).
+
+#### b) **Authorities Table**
+This table holds the roles or authorities assigned to users. A common structure for the `authorities` table might look like this:
+
+```sql
+CREATE TABLE authorities (
+    username VARCHAR(50) NOT NULL,
+    authority VARCHAR(50) NOT NULL,
+    CONSTRAINT fk_authorities_users FOREIGN KEY(username) REFERENCES users(username)
+);
+```
+
+- **username**: The same username used in the `users` table (foreign key).
+- **authority**: The authority or role assigned to the user (e.g., `ROLE_USER`, `ROLE_ADMIN`).
+
+### 5. **How the `userDetailsService` Method Works**
+This method configures Spring Security to load user details from a relational database using JDBC. Here’s how it works step by step:
+
+1. **Injecting DataSource**: The `DataSource` object is injected as a parameter. This object provides the database connection details required for the `JdbcUserDetailsManager` to interact with the database.
+
+2. **Returning `JdbcUserDetailsManager`**: The `JdbcUserDetailsManager` is returned, which is Spring Security's implementation of `UserDetailsService` using JDBC. It will be used by Spring Security to authenticate users and manage user details like their roles and credentials.
+
+### 6. **Authentication Flow Example**
+
+#### Step 1: User Login
+A user attempts to log in with their username and password. For example:
+- Username: `john`
+- Password: `password123`
+
+#### Step 2: Spring Security Uses `UserDetailsService`
+Spring Security, using the `JdbcUserDetailsManager`, performs the following:
+1. It queries the `users` table using SQL like this:
+
+    ```sql
+    SELECT username, password, enabled FROM users WHERE username = 'john';
+    ```
+
+    It checks if the username exists and if the user is enabled.
+
+2. If the username is found, it compares the provided password with the stored password in the database.
+
+#### Step 3: Roles and Authorities
+If authentication is successful, Spring Security queries the `authorities` table to retrieve the user’s roles or authorities:
+
+```sql
+SELECT authority FROM authorities WHERE username = 'john';
+```
+
+For example, if the user `john` has the role `ROLE_USER`, Spring Security will load this role and use it to manage access to various parts of the application.
+
+### 7. **Example Database Setup**
+
+Here’s an example of inserting a user and their role into the database:
+
+```sql
+-- Insert user
+INSERT INTO users (username, password, enabled) 
+VALUES ('john', '{bcrypt}$2a$10$uV3bpaTkZ8syZKpE.zQWZuuVLEO1Fh17XLRQf6SpY3mCEZa/2YwWS', true);
+
+-- Insert role/authority
+INSERT INTO authorities (username, authority) 
+VALUES ('john', 'ROLE_USER');
+```
+
+### 8. **Password Storage and Encoding**
+Note that the password in the `users` table is stored in a secure (hashed) format using an encoder like BCrypt. Spring Security, as configured by the `PasswordEncoder` bean in your configuration, will automatically hash passwords and check them securely during authentication.
+
+For example, the password `password123` might be hashed as:
+
+```
+$2a$10$uV3bpaTkZ8syZKpE.zQWZuuVLEO1Fh17XLRQf6SpY3mCEZa/2YwWS
+```
+
+### Conclusion
+This method sets up a `JdbcUserDetailsManager`, allowing your Spring Security application to load user details and roles from a relational database via JDBC. The `DataSource` object provides the connection details for the database, and Spring Security will use predefined SQL queries to authenticate users, retrieve their roles, and manage security within the application.
 ## 006 Creating JPA Entity and repository classes for new table
 ## 007 Creating our own custom implementation of UserDetailsService
 ## 008 Building a new REST API to allow the registration of new User
