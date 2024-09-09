@@ -1395,4 +1395,201 @@ This deletes the customer with the given `id`.
 - This repository pattern promotes cleaner code by separating the data access layer from the business logic and allows for easier testing and maintenance.
 
 ## 007 Creating our own custom implementation of UserDetailsService
+
+```java
+package com.wchamara.springsecurity.config;
+
+import com.wchamara.springsecurity.model.Customer;
+import com.wchamara.springsecurity.repository.CustomerRepository;
+import lombok.AllArgsConstructor;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+@AllArgsConstructor
+public class BankUserDetailsService implements UserDetailsService {
+
+    private final CustomerRepository customerRepository;
+
+
+    /**
+     * Locates the user based on the username. In the actual implementation, the search
+     * may possibly be case sensitive, or case insensitive depending on how the
+     * implementation instance is configured. In this case, the <code>UserDetails</code>
+     * object that comes back may have a username that is of a different case than what
+     * was actually requested..
+     *
+     * @param username the username identifying the user whose data is required.
+     * @return a fully populated user record (never <code>null</code>)
+     * @throws UsernameNotFoundException if the user could not be found or the user has no
+     *                                   GrantedAuthority
+     */
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        Customer customer = customerRepository.findByEmail(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User detail not found for user: " + username));
+        List<GrantedAuthority> authorities = List.of(customer::getRole);
+
+        return new User(customer.getEmail(), customer.getPwd(), authorities);
+
+    }
+}
+
+```
+
+Let's break down the provided `BankUserDetailsService` class, which implements `UserDetailsService` in the context of Spring Security. This service is responsible for loading user details (e.g., email, password, and roles) from a database when a user tries to authenticate in the application.
+
+### 1. **Class Declaration and Dependencies**
+
+```java
+@Service
+@AllArgsConstructor
+public class BankUserDetailsService implements UserDetailsService {
+
+    private final CustomerRepository customerRepository;
+}
+```
+
+- **`@Service`**: Marks this class as a Spring service component. It tells Spring that this class contains the business logic related to the application's security (specifically, user details loading). This class will be automatically discovered and registered as a bean in the Spring container.
+  
+- **`@AllArgsConstructor`**: A Lombok annotation that generates a constructor for the class with all the required fields. In this case, it generates a constructor with the `CustomerRepository` field, which will be injected via constructor-based dependency injection.
+  
+- **`CustomerRepository`**: This is the repository used to interact with the database and fetch customer data. It's assumed that `CustomerRepository` extends Spring Data JPA’s `CrudRepository` or `JpaRepository` and provides methods to retrieve customer records, including the custom query `findByEmail`.
+
+### 2. **`UserDetailsService` Interface**
+
+`UserDetailsService` is an interface provided by Spring Security. It is used to retrieve user details from a backend system (like a database) during authentication. This service allows Spring Security to verify if a user exists and retrieve necessary credentials and roles (authorities).
+
+### 3. **`loadUserByUsername` Method**
+
+```java
+@Override
+public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+    Customer customer = customerRepository.findByEmail(username)
+            .orElseThrow(() -> new UsernameNotFoundException("User detail not found for user: " + username));
+    List<GrantedAuthority> authorities = List.of(customer::getRole);
+
+    return new User(customer.getEmail(), customer.getPwd(), authorities);
+}
+```
+
+This method is central to the authentication process. Let’s break down each part:
+
+#### a) **Parameter: `username`**
+- **`username`**: This is the string identifier provided by the user during login. In this case, the `username` refers to the customer’s email address, which serves as their login ID.
+
+#### b) **Fetching Customer from the Database**
+
+```java
+Customer customer = customerRepository.findByEmail(username)
+        .orElseThrow(() -> new UsernameNotFoundException("User detail not found for user: " + username));
+```
+
+- **`customerRepository.findByEmail(username)`**: This uses the `CustomerRepository` to retrieve a `Customer` object from the database, based on the email address (which is used as the username in this system). It performs a query like:
+  ```sql
+  SELECT * FROM customer WHERE email = ?;
+  ```
+- **Handling `Optional<Customer>`**: The result of `findByEmail` is wrapped in an `Optional<Customer>`, which means the customer may or may not be found. 
+  - **`orElseThrow()`**: If the customer with the provided email is not found, a `UsernameNotFoundException` is thrown with a custom message. Spring Security needs this exception to handle login failures, like when the user is not registered in the system.
+
+#### c) **Assigning Authorities (Roles)**
+
+```java
+List<GrantedAuthority> authorities = List.of(customer::getRole);
+```
+
+- **`GrantedAuthority`**: In Spring Security, authorities (or roles) are used to define what a user is allowed to do in the system. A `GrantedAuthority` is an interface that represents an authority granted to the user (for example, roles like `ROLE_USER` or `ROLE_ADMIN`).
+  
+- **`customer::getRole`**: This method reference fetches the role stored in the `Customer` entity and provides it as a `GrantedAuthority`. In this example, the role is returned as a single string like `ROLE_USER` or `ROLE_ADMIN`.
+
+- **`List.of()`**: This is a static method from Java 9 that creates an immutable list. In this case, it creates a list of authorities (even if there’s only one authority, like the role of the customer).
+
+### d) **Creating a `User` Object**
+
+```java
+return new User(customer.getEmail(), customer.getPwd(), authorities);
+```
+
+- **`User`**: This is a built-in implementation of the `UserDetails` interface provided by Spring Security. It holds the necessary information about a user that Spring Security needs during authentication.
+  
+  - **`customer.getEmail()`**: This returns the email of the customer and is used as the username for login.
+  - **`customer.getPwd()`**: This returns the customer's password. In a typical Spring Security setup, this password would be hashed (e.g., using BCrypt). When a user logs in, Spring Security compares the hashed version of the provided password with the one stored in the database.
+  - **`authorities`**: This is the list of roles (or authorities) that the user has. These roles determine what the user can access within the system.
+
+### 4. **How Does This Fit into the Authentication Flow?**
+
+This service is called by Spring Security whenever a user tries to log in. Let’s walk through the flow:
+
+#### Step 1: User Login Attempt
+
+- A user (for example, `user@abcbank.com`) attempts to log in to the system via a login form, providing their email (username) and password.
+
+#### Step 2: Spring Security Calls `loadUserByUsername`
+
+- When Spring Security needs to authenticate the user, it calls the `loadUserByUsername` method of the `UserDetailsService` (in this case, the `BankUserDetailsService`).
+- It passes the provided email (e.g., `user@abcbank.com`) to the method.
+
+#### Step 3: Fetch Customer from the Database
+
+- The `loadUserByUsername` method uses the `CustomerRepository` to fetch the customer by their email (username) from the database.
+- If the customer is found, their details (email, password, role) are retrieved. If not, a `UsernameNotFoundException` is thrown.
+
+#### Step 4: Return a `UserDetails` Object
+
+- Once the customer is retrieved, Spring Security needs to validate the provided credentials. The `loadUserByUsername` method returns a `UserDetails` object (which, in this case, is an instance of `User`), containing:
+  - The customer's email (as the username).
+  - The hashed password from the database.
+  - The customer’s role(s), represented as `GrantedAuthority`.
+
+#### Step 5: Spring Security Verifies Password
+
+- Spring Security compares the password provided by the user during login with the hashed password stored in the database. If they match, the user is authenticated successfully.
+
+#### Step 6: Role-Based Access
+
+- Once authenticated, Spring Security uses the user’s roles (authorities) to manage what the user is allowed to do. For example, users with the role `ROLE_ADMIN` may access administrative features, while users with the role `ROLE_USER` can only access basic features.
+
+### Example: Typical Authentication Flow
+
+1. **Login Attempt**:
+   - Email: `admin@abcbank.com`
+   - Password: `password123`
+   
+2. **Spring Security Calls**: `loadUserByUsername("admin@abcbank.com")`
+   
+3. **Database Query**:
+   - `SELECT * FROM customer WHERE email = 'admin@abcbank.com';`
+   - Assume the database returns:
+     - Email: `admin@abcbank.com`
+     - Password: (hashed) `"$2a$10$xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"` (hashed using BCrypt)
+     - Role: `ROLE_ADMIN`
+   
+4. **Return `UserDetails`**:
+   - `User("admin@abcbank.com", "hashed_password", ["ROLE_ADMIN"])`
+
+5. **Password Verification**:
+   - Spring Security hashes the provided password `password123` using BCrypt and compares it with the stored hash. If they match, the user is authenticated.
+
+6. **Access Granted**:
+   - Spring Security grants access to features based on the `ROLE_ADMIN` authority.
+
+### Conclusion
+
+The `BankUserDetailsService` class is an implementation of `UserDetailsService`, which Spring Security uses to authenticate users. It interacts with the `CustomerRepository` to fetch customer details from the database using their email as the username. It returns a `UserDetails` object containing the user’s email, password, and authorities (roles), which Spring Security uses to manage authentication and authorization. This design follows Spring Security's standard approach, providing a clean, reusable service for handling user details in a secure way.
+
+```java
+//    @Bean
+//    public UserDetailsService userDetailsService(DataSource dataSource) {
+//        return new JdbcUserDetailsManager(dataSource);
+//    }
+
+```
+
 ## 008 Building a new REST API to allow the registration of new User
+
