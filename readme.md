@@ -6,6 +6,7 @@
   - [02 - Changing the default security configurations](#02---changing-the-default-security-configurations)
   - [03 - Defining \& Managing Users using InMemoryUserDetailsManager](#03---defining--managing-users-using-inmemoryuserdetailsmanager)
   - [04 - Defining \& Managing Users using JdbcUserDetailsManager](#04---defining--managing-users-using-jdbcuserdetailsmanager)
+  - [05 - Password Management with PasswordEncoders](#05---password-management-with-passwordencoders)
 
 
 ## [01 - Getting Started](./docs/01-GettingStarted/readme.md)
@@ -14,3 +15,5 @@
 ## [03 - Defining & Managing Users using InMemoryUserDetailsManager](./docs/03-Defining&ManagingUsersusingInMemoryUserDetailsManager/readme.md)
 
 ## [04 - Defining & Managing Users using JdbcUserDetailsManager](./docs/04-Defining&ManagingUsersusingadatabase/readme.md)
+
+## [05 - Password Management with PasswordEncoders](./docs/05-PasswordManagementwithPasswordEncoders/readme.md)
