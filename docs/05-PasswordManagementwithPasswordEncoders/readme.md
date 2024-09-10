@@ -210,7 +210,169 @@
       - [f) **Argon2PasswordEncoder**](#f-argon2passwordencoder)
     - [3. **How to Choose the Right PasswordEncoder**](#3-how-to-choose-the-right-passwordencoder)
     - [4. **Conclusion**](#4-conclusion-1)
+    - [1. **`encode(CharSequence rawPassword)`**](#1-encodecharsequence-rawpassword)
+      - [How it works:](#how-it-works-1)
+      - [Example:](#example)
+    - [2. **`matches(CharSequence rawPassword, String encodedPassword)`**](#2-matchescharsequence-rawpassword-string-encodedpassword)
+      - [How it works:](#how-it-works-2)
+      - [Example:](#example-1)
+      - [Key Points:](#key-points)
+    - [3. **`upgradeEncoding(String encodedPassword)`**](#3-upgradeencodingstring-encodedpassword)
+      - [How it works:](#how-it-works-3)
+      - [Example Use Case:](#example-use-case)
+    - [Example Workflow in a Real Application](#example-workflow-in-a-real-application)
+    - [4. **PasswordEncoder Implementations**](#4-passwordencoder-implementations)
+    - [Summary of Key Concepts](#summary-of-key-concepts)
   - [009 Deep dive of PasswordEncoder implementation classes](#009-deep-dive-of-passwordencoder-implementation-classes)
+    - [1. **Purpose of NoOpPasswordEncoder**](#1-purpose-of-nooppasswordencoder)
+      - [Key Points:](#key-points-1)
+    - [2. **Class Overview**](#2-class-overview)
+      - [Key Components:](#key-components)
+    - [3. **Methods in NoOpPasswordEncoder**](#3-methods-in-nooppasswordencoder)
+      - [a) **`encode(CharSequence rawPassword)`**](#a-encodecharsequence-rawpassword-1)
+        - [Example:](#example-2)
+      - [Why It’s Insecure:](#why-its-insecure)
+      - [b) **`matches(CharSequence rawPassword, String encodedPassword)`**](#b-matchescharsequence-rawpassword-string-encodedpassword-1)
+        - [Example:](#example-3)
+      - [Why It’s Insecure:](#why-its-insecure-1)
+    - [4. **Singleton Pattern**](#4-singleton-pattern)
+      - [Example:](#example-4)
+      - [Why the Singleton Pattern Works Here:](#why-the-singleton-pattern-works-here)
+    - [5. **Security Warning**](#5-security-warning)
+    - [6. **Example Use Case for NoOpPasswordEncoder**](#6-example-use-case-for-nooppasswordencoder)
+      - [a) **Testing**:](#a-testing)
+        - [Example Test:](#example-test)
+      - [b) **Legacy Systems**:](#b-legacy-systems)
+    - [7. **Conclusion**](#7-conclusion-2)
+    - [1. **Overview of StandardPasswordEncoder**](#1-overview-of-standardpasswordencoder)
+    - [2. **Key Components of the Class**](#2-key-components-of-the-class)
+      - [a) **DEFAULT\_ITERATIONS**](#a-default_iterations)
+      - [b) **Secret Key**](#b-secret-key)
+      - [c) **Salting (Random Salt)**](#c-salting-random-salt)
+      - [d) **Digester (SHA-256)**](#d-digester-sha-256)
+    - [3. **Key Methods**](#3-key-methods)
+      - [a) **`encode(CharSequence rawPassword)`**](#a-encodecharsequence-rawpassword-2)
+        - [Example:](#example-5)
+        - [Breakdown:](#breakdown)
+      - [b) **`matches(CharSequence rawPassword, String encodedPassword)`**](#b-matchescharsequence-rawpassword-string-encodedpassword-2)
+        - [Example:](#example-6)
+        - [Security Issue:](#security-issue)
+      - [c) **Private Helper Methods:**](#c-private-helper-methods)
+    - [4. **How Encoding Works Internally**](#4-how-encoding-works-internally)
+      - [Example Process:](#example-process)
+    - [5. **Why This Approach is Deprecated**](#5-why-this-approach-is-deprecated)
+    - [6. **Conclusion**](#6-conclusion-2)
+    - [1. **Key Components of the `Pbkdf2PasswordEncoder`**](#1-key-components-of-the-pbkdf2passwordencoder)
+      - [a) **Salt Length**](#a-salt-length)
+      - [b) **Hash Width**](#b-hash-width)
+      - [c) **Iterations**](#c-iterations)
+      - [d) **Secret**](#d-secret)
+      - [e) **Algorithm**](#e-algorithm)
+      - [f) **Salt Generator**](#f-salt-generator)
+    - [2. **Constructors**](#2-constructors)
+      - [a) **Default Constructor**](#a-default-constructor)
+      - [b) **Custom Constructor with Algorithm**](#b-custom-constructor-with-algorithm)
+      - [Example:](#example-7)
+    - [3. **Key Methods**](#3-key-methods-1)
+      - [a) **`encode(CharSequence rawPassword)`**](#a-encodecharsequence-rawpassword-3)
+        - [Example:](#example-8)
+        - [How it Works:](#how-it-works-4)
+        - [Breakdown:](#breakdown-1)
+      - [b) **`matches(CharSequence rawPassword, String encodedPassword)`**](#b-matchescharsequence-rawpassword-string-encodedpassword-3)
+        - [Example:](#example-9)
+        - [How it Works:](#how-it-works-5)
+        - [Security:](#security)
+      - [c) **`setEncodeHashAsBase64(boolean encodeHashAsBase64)`**](#c-setencodehashasbase64boolean-encodehashasbase64)
+        - [Example:](#example-10)
+    - [4. **Customizing the Algorithm**](#4-customizing-the-algorithm)
+        - [Example:](#example-11)
+    - [5. **Why PBKDF2 is Secure**](#5-why-pbkdf2-is-secure)
+    - [6. **Deprecation and Evolution**](#6-deprecation-and-evolution)
+    - [Conclusion](#conclusion-3)
+    - [Overview of BCrypt](#overview-of-bcrypt)
+    - [1. **Key Components of `BCryptPasswordEncoder`**](#1-key-components-of-bcryptpasswordencoder)
+      - [a) **BCrypt Version**](#a-bcrypt-version)
+      - [Example:](#example-12)
+      - [b) **Strength (Work Factor)**](#b-strength-work-factor)
+      - [Example:](#example-13)
+      - [c) **Secure Random**](#c-secure-random)
+      - [Example:](#example-14)
+    - [2. **Key Methods of `BCryptPasswordEncoder`**](#2-key-methods-of-bcryptpasswordencoder)
+      - [a) **`encode(CharSequence rawPassword)`**](#a-encodecharsequence-rawpassword-4)
+        - [Example:](#example-15)
+      - [How it Works:](#how-it-works-6)
+        - [Sample Output:](#sample-output)
+      - [b) **`matches(CharSequence rawPassword, String encodedPassword)`**](#b-matchescharsequence-rawpassword-string-encodedpassword-4)
+        - [Example:](#example-16)
+      - [How it Works:](#how-it-works-7)
+      - [Security:](#security-1)
+      - [c) **`upgradeEncoding(String encodedPassword)`**](#c-upgradeencodingstring-encodedpassword-1)
+        - [Example:](#example-17)
+      - [How it Works:](#how-it-works-8)
+    - [3. **BCrypt Hashing Process**](#3-bcrypt-hashing-process)
+      - [Hashing Steps:](#hashing-steps)
+    - [4. **BCrypt Pattern**](#4-bcrypt-pattern)
+    - [5. **Example Usage in a Real Application**](#5-example-usage-in-a-real-application)
+      - [User Registration:](#user-registration)
+      - [User Login:](#user-login)
+    - [6. **Conclusion**](#6-conclusion-3)
+      - [Key Benefits:](#key-benefits)
+      - [Use Cases:](#use-cases)
+    - [1. **Overview of SCrypt**](#1-overview-of-scrypt)
+      - [Key Parameters:](#key-parameters)
+    - [2. **Key Components of `SCryptPasswordEncoder`**](#2-key-components-of-scryptpasswordencoder)
+      - [a) **CPU Cost (N)**](#a-cpu-cost-n)
+      - [Example:](#example-18)
+      - [b) **Memory Cost (r)**](#b-memory-cost-r)
+      - [c) **Parallelization (p)**](#c-parallelization-p)
+      - [Example:](#example-19)
+      - [d) **Key Length (dkLen)**](#d-key-length-dklen)
+      - [Example:](#example-20)
+      - [e) **Salt Length (S)**](#e-salt-length-s)
+    - [3. **Key Methods of `SCryptPasswordEncoder`**](#3-key-methods-of-scryptpasswordencoder)
+      - [a) **`encode(CharSequence rawPassword)`**](#a-encodecharsequence-rawpassword-5)
+        - [Example:](#example-21)
+      - [How it Works:](#how-it-works-9)
+        - [Sample Output:](#sample-output-1)
+      - [b) **`matches(CharSequence rawPassword, String encodedPassword)`**](#b-matchescharsequence-rawpassword-string-encodedpassword-5)
+        - [Example:](#example-22)
+      - [How it Works:](#how-it-works-10)
+    - [4. **Security Benefits of SCrypt**](#4-security-benefits-of-scrypt)
+      - [a) **Memory-Hardness**](#a-memory-hardness)
+      - [b) **CPU Intensity**](#b-cpu-intensity)
+      - [c) **Salting**](#c-salting)
+    - [5. **Example Usage in a Real Application**](#5-example-usage-in-a-real-application-1)
+      - [User Registration:](#user-registration-1)
+      - [User Login:](#user-login-1)
+    - [6. **Conclusion**](#6-conclusion-4)
+      - [Key Benefits:](#key-benefits-1)
+    - [Key Features of Argon2](#key-features-of-argon2)
+    - [1. **Core Components of `Argon2PasswordEncoder`**](#1-core-components-of-argon2passwordencoder)
+      - [a) **Salt Length (saltLength)**](#a-salt-length-saltlength)
+      - [b) **Hash Length (hashLength)**](#b-hash-length-hashlength)
+      - [c) **Parallelism**](#c-parallelism)
+      - [d) **Memory Cost**](#d-memory-cost)
+      - [e) **Iterations**](#e-iterations)
+    - [2. **Key Methods of `Argon2PasswordEncoder`**](#2-key-methods-of-argon2passwordencoder)
+      - [a) **`encode(CharSequence rawPassword)`**](#a-encodecharsequence-rawpassword-6)
+        - [Example:](#example-23)
+        - [Output:](#output-1)
+      - [b) **`matches(CharSequence rawPassword, String encodedPassword)`**](#b-matchescharsequence-rawpassword-string-encodedpassword-6)
+        - [Example:](#example-24)
+      - [How It Works:](#how-it-works-11)
+    - [3. **Security Aspects of Argon2PasswordEncoder**](#3-security-aspects-of-argon2passwordencoder)
+      - [a) **Memory-Hardness**](#a-memory-hardness-1)
+      - [b) **Salted Hashing**](#b-salted-hashing)
+      - [c) **Configurable Parameters**](#c-configurable-parameters)
+      - [d) **Constant Time Comparison**](#d-constant-time-comparison)
+    - [4. **How to Tune Parameters for Security**](#4-how-to-tune-parameters-for-security)
+      - [a) **Increasing Memory Cost**](#a-increasing-memory-cost)
+      - [b) **Increasing Iterations**](#b-increasing-iterations)
+      - [c) **Parallelism**](#c-parallelism-1)
+    - [5. **Example in a Real-World Application**](#5-example-in-a-real-world-application)
+      - [User Registration:](#user-registration-2)
+      - [User Login:](#user-login-2)
+    - [Conclusion](#conclusion-4)
   - [010 Demo of registration and login with Bcrypt password encoder](#010-demo-of-registration-and-login-with-bcrypt-password-encoder)
 
 
@@ -1940,5 +2102,2235 @@ By using strong algorithms like **BCrypt**, **SCrypt**, **Argon2**, or **PBKDF2*
 
 Understanding how each encoder works and selecting the right one for your security needs is essential for building robust, secure systems.
 
+
+```java
+package org.springframework.security.crypto.password;
+
+/**
+ * Service interface for encoding passwords.
+ *
+ * The preferred implementation is {@code BCryptPasswordEncoder}.
+ *
+ * @author Keith Donald
+ */
+public interface PasswordEncoder {
+
+	/**
+	 * Encode the raw password. Generally, a good encoding algorithm applies a SHA-1 or
+	 * greater hash combined with an 8-byte or greater randomly generated salt.
+	 */
+	String encode(CharSequence rawPassword);
+
+	/**
+	 * Verify the encoded password obtained from storage matches the submitted raw
+	 * password after it too is encoded. Returns true if the passwords match, false if
+	 * they do not. The stored password itself is never decoded.
+	 * @param rawPassword the raw password to encode and match
+	 * @param encodedPassword the encoded password from storage to compare with
+	 * @return true if the raw password, after encoding, matches the encoded password from
+	 * storage
+	 */
+	boolean matches(CharSequence rawPassword, String encodedPassword);
+
+	/**
+	 * Returns true if the encoded password should be encoded again for better security,
+	 * else false. The default implementation always returns false.
+	 * @param encodedPassword the encoded password to check
+	 * @return true if the encoded password should be encoded again for better security,
+	 * else false.
+	 */
+	default boolean upgradeEncoding(String encodedPassword) {
+		return false;
+	}
+
+}
+
+```
+
+The `PasswordEncoder` interface in Spring Security provides a service for encoding passwords, verifying passwords, and determining if passwords should be re-encoded for better security. This interface abstracts away the details of password hashing, making it easier for developers to implement secure password storage and validation in their applications.
+
+Let's go through the key methods in the `PasswordEncoder` interface in detail, with examples.
+
+---
+
+### 1. **`encode(CharSequence rawPassword)`**
+
+This method is responsible for **encoding** (or hashing) a plain-text password. The result of this method is a hashed password that can be safely stored in a database.
+
+#### How it works:
+- The raw password (e.g., `password123`) is passed to this method.
+- The method applies a secure hashing algorithm, often with a **salt** (random data added to the password before hashing).
+- The result is a hashed password, which is a non-reversible string of characters.
+
+#### Example:
+```java
+PasswordEncoder encoder = new BCryptPasswordEncoder();
+String hashedPassword = encoder.encode("password123");
+System.out.println(hashedPassword);
+```
+
+**Output** (Example hashed password):
+```
+$2a$10$vI8aWBnW3fID.ZQ4/zo1G.uWWaW.r7dd3kYp4wHfXJCFKh26tTq0K
+```
+
+Here, `BCryptPasswordEncoder` is used to hash the password `password123`. The resulting hash (`$2a$10$...`) is what would be stored in the database. Notice that the hashed password contains the **salt** and other metadata (like cost factor) encoded within the result.
+
+---
+
+### 2. **`matches(CharSequence rawPassword, String encodedPassword)`**
+
+This method checks if a **raw password** (entered by the user) matches the **encoded password** (retrieved from the database) after hashing the raw password.
+
+#### How it works:
+- The method takes two inputs:
+  1. `rawPassword`: The password entered by the user (e.g., `password123`).
+  2. `encodedPassword`: The hashed password stored in the database (e.g., `$2a$10$...`).
+  
+- The method re-hashes the `rawPassword` and compares the result with the `encodedPassword`.
+- If the two hashes match, it returns `true`; otherwise, it returns `false`.
+
+#### Example:
+```java
+PasswordEncoder encoder = new BCryptPasswordEncoder();
+String storedPasswordHash = "$2a$10$vI8aWBnW3fID.ZQ4/zo1G.uWWaW.r7dd3kYp4wHfXJCFKh26tTq0K"; // Previously hashed password
+boolean isPasswordMatch = encoder.matches("password123", storedPasswordHash);
+
+System.out.println(isPasswordMatch); // Output: true if the password matches
+```
+
+**Output**:
+```
+true
+```
+
+In this example, the user enters `password123`. The method hashes the entered password using bcrypt and compares it to the stored hash in the database. If they match, the method returns `true`, meaning the password is correct.
+
+#### Key Points:
+- **The password is never decoded**: Instead of decoding the stored password, the raw password is hashed again and compared to the stored hash.
+- **Salting**: If a salt was used during hashing (as with bcrypt), the method will handle that automatically since the salt is stored within the hashed password.
+
+---
+
+### 3. **`upgradeEncoding(String encodedPassword)`**
+
+This method checks if the **stored encoded password** is outdated and should be re-encoded using a stronger algorithm or more secure configuration.
+
+#### How it works:
+- When password storage policies change, or when stronger algorithms or cost factors are introduced, it's important to **re-hash** passwords using the latest security practices.
+- This method determines whether the stored hash should be upgraded. By default, it returns `false`, meaning no upgrade is necessary.
+- You can override this method to return `true` if you need to upgrade the encoding of passwords stored with a weaker algorithm.
+
+#### Example Use Case:
+
+Let's say you initially hashed passwords with a cost factor of 10 using bcrypt. Over time, you decide to increase the cost factor to 12 for improved security. The `upgradeEncoding` method can be used to identify passwords that should be re-hashed with the new configuration.
+
+```java
+@Override
+public boolean upgradeEncoding(String encodedPassword) {
+    BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12); // Cost factor 12
+    return !encoder.matches("password123", encodedPassword);
+}
+```
+
+In this example, if the encoded password does not meet the new encoding requirements (such as a higher cost factor in bcrypt), the method would return `true`, indicating that the password should be re-encoded.
+
+---
+
+### Example Workflow in a Real Application
+
+Here’s a typical workflow in a Spring Security-based application using the `PasswordEncoder` interface:
+
+1. **User Registration**:
+   - The user creates an account and submits a plain-text password (e.g., `password123`).
+   - The system hashes the password using `PasswordEncoder.encode()` and stores the resulting hash in the database.
+
+   ```java
+   String hashedPassword = encoder.encode("password123");
+   userRepository.save(new User(username, hashedPassword));
+   ```
+
+2. **User Login**:
+   - The user logs in by entering their username and password.
+   - The system retrieves the stored hash from the database and compares it with the password the user entered using `PasswordEncoder.matches()`.
+
+   ```java
+   User user = userRepository.findByUsername(username);
+   if (encoder.matches("password123", user.getPasswordHash())) {
+       // Login success
+   } else {
+       // Login failure
+   }
+   ```
+
+3. **Password Update** (Optional):
+   - If the system decides that the stored password hash needs to be re-encoded with a more secure algorithm (using `upgradeEncoding()`), the password is re-hashed the next time the user logs in.
+   
+   ```java
+   if (encoder.upgradeEncoding(user.getPasswordHash())) {
+       String newHash = encoder.encode("password123");
+       user.setPasswordHash(newHash);
+       userRepository.save(user);
+   }
+   ```
+
+---
+
+### 4. **PasswordEncoder Implementations**
+
+Spring Security provides multiple implementations of the `PasswordEncoder` interface, including:
+
+- **BCryptPasswordEncoder**: Uses the bcrypt hashing algorithm. This is one of the most widely recommended algorithms for password storage because it includes automatic salting and allows configurable computational cost (strength).
+
+- **Pbkdf2PasswordEncoder**: Uses the PBKDF2 (Password-Based Key Derivation Function 2) hashing algorithm. It is secure and can be configured to use different iteration counts and salts.
+
+- **SCryptPasswordEncoder**: Uses the scrypt algorithm, which is both CPU and memory-intensive, providing strong security against hardware-based attacks.
+
+- **Argon2PasswordEncoder**: Uses Argon2, the latest and most secure hashing algorithm, which balances memory-hardness and computational cost.
+
+- **NoOpPasswordEncoder**: Performs no encoding (returns the raw password). This is only for development and testing purposes and should **never** be used in production.
+
+---
+
+### Summary of Key Concepts
+
+- **Hashing**: Converts a plain-text password into a fixed-length string of characters (hash), which is stored in the database.
+- **Password Verification**: Hashes the raw password entered by the user during login and compares it to the stored hash.
+- **Salting**: Adds a unique random value (salt) to each password before hashing to prevent rainbow table attacks.
+- **Password Upgrade**: Allows the system to re-encode passwords with stronger algorithms or configurations as security practices evolve.
+
+The `PasswordEncoder` interface provides an easy and secure way to handle password hashing and verification, making it essential for building secure applications that protect user credentials.
+
 ## 009 Deep dive of PasswordEncoder implementation classes
+
+![alt text](image-16.png)
+
+```java
+/*
+ * Copyright 2011-2016 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.springframework.security.crypto.password;
+
+/**
+ * This {@link PasswordEncoder} is provided for legacy and testing purposes only and is
+ * not considered secure.
+ *
+ * A password encoder that does nothing. Useful for testing where working with plain text
+ * passwords may be preferred.
+ *
+ * @author Keith Donald
+ * @deprecated This PasswordEncoder is not secure. Instead use an adaptive one way
+ * function like BCryptPasswordEncoder, Pbkdf2PasswordEncoder, or SCryptPasswordEncoder.
+ * Even better use {@link DelegatingPasswordEncoder} which supports password upgrades.
+ * There are no plans to remove this support. It is deprecated to indicate that this is a
+ * legacy implementation and using it is considered insecure.
+ */
+@Deprecated
+public final class NoOpPasswordEncoder implements PasswordEncoder {
+
+	private static final PasswordEncoder INSTANCE = new NoOpPasswordEncoder();
+
+	private NoOpPasswordEncoder() {
+	}
+
+	@Override
+	public String encode(CharSequence rawPassword) {
+		return rawPassword.toString();
+	}
+
+	@Override
+	public boolean matches(CharSequence rawPassword, String encodedPassword) {
+		return rawPassword.toString().equals(encodedPassword);
+	}
+
+	/**
+	 * Get the singleton {@link NoOpPasswordEncoder}.
+	 */
+	public static PasswordEncoder getInstance() {
+		return INSTANCE;
+	}
+
+}
+
+```
+The `NoOpPasswordEncoder` class in Spring Security is a special implementation of the `PasswordEncoder` interface that is intended for **legacy** systems or **testing purposes**. As the name suggests, this class does **no actual password encoding**. Instead, it returns the password exactly as it was passed in.
+
+This implementation is **deprecated** because it is **not secure**. Storing or working with plain-text passwords is considered a major security risk in modern applications, as plain-text passwords can easily be compromised if the database is breached.
+
+Let’s dive into the `NoOpPasswordEncoder` class with detailed explanations of its methods and why it's insecure.
+
+### 1. **Purpose of NoOpPasswordEncoder**
+
+The `NoOpPasswordEncoder` is provided for **backward compatibility** or **testing purposes** where you might need to work with plain-text passwords in non-production environments. However, it should never be used in production because it doesn't provide any real security.
+
+#### Key Points:
+- **Legacy Use**: In older systems where passwords were stored in plain text, this encoder can be used to avoid breaking those systems when migrating to a newer version of Spring Security.
+- **Testing Use**: In testing environments, where hashing passwords might add unnecessary complexity, `NoOpPasswordEncoder` can simplify the testing process by allowing developers to work with raw, readable passwords.
+
+### 2. **Class Overview**
+
+The class is defined as `final`, meaning it cannot be subclassed. It also uses the **Singleton pattern**, meaning only one instance of this class can exist in the system.
+
+#### Key Components:
+- **Singleton Pattern**: The class has a private constructor and provides a static `getInstance()` method to access the single instance of the class.
+- **Deprecated Annotation**: The class is marked with the `@Deprecated` annotation to indicate that it should not be used in new projects. The deprecation message advises developers to use more secure password encoders like `BCryptPasswordEncoder`, `Pbkdf2PasswordEncoder`, or `SCryptPasswordEncoder`.
+
+---
+
+### 3. **Methods in NoOpPasswordEncoder**
+
+#### a) **`encode(CharSequence rawPassword)`**
+
+This method is supposed to hash or encode the password, but in the `NoOpPasswordEncoder`, it does nothing. It simply converts the `rawPassword` (a `CharSequence`) to a string and returns it.
+
+##### Example:
+```java
+PasswordEncoder encoder = NoOpPasswordEncoder.getInstance();
+String plainPassword = "password123";
+String encodedPassword = encoder.encode(plainPassword);
+System.out.println(encodedPassword); // Output: password123
+```
+
+In this example, the `encode()` method doesn't actually hash or encrypt the password. It just returns the raw password as a string.
+
+#### Why It’s Insecure:
+- **No Hashing or Encryption**: Since there is no hashing or encryption, the password is stored or returned in plain text. This means if an attacker gains access to the database, they can see all user passwords in their original form, which is a severe security vulnerability.
+
+---
+
+#### b) **`matches(CharSequence rawPassword, String encodedPassword)`**
+
+This method compares the raw password entered by the user with the stored password (which, in this case, is also in plain text). It simply checks if the two strings are equal.
+
+##### Example:
+```java
+PasswordEncoder encoder = NoOpPasswordEncoder.getInstance();
+String rawPassword = "password123";
+String storedPassword = "password123";
+boolean isMatch = encoder.matches(rawPassword, storedPassword);
+System.out.println(isMatch); // Output: true
+```
+
+In this example, the `matches()` method checks if the raw password entered by the user matches the stored password, which is also in plain text. Since both are the same, the method returns `true`.
+
+#### Why It’s Insecure:
+- **Plain Text Comparison**: Just like the `encode()` method, the `matches()` method works with plain text. If an attacker gets access to the database, they can simply see and match the stored plain-text passwords.
+
+---
+
+### 4. **Singleton Pattern**
+
+The `NoOpPasswordEncoder` uses the **Singleton pattern**, meaning there is only one instance of the class. The static `getInstance()` method returns this single instance. This ensures that you don’t create multiple instances of this encoder, which is common in situations where the object does not maintain any internal state (as in this case).
+
+#### Example:
+```java
+PasswordEncoder encoder1 = NoOpPasswordEncoder.getInstance();
+PasswordEncoder encoder2 = NoOpPasswordEncoder.getInstance();
+
+System.out.println(encoder1 == encoder2); // Output: true
+```
+
+In this example, `encoder1` and `encoder2` both point to the same instance of `NoOpPasswordEncoder`. The `==` operator confirms that both variables reference the same object.
+
+#### Why the Singleton Pattern Works Here:
+- **Stateless**: Since `NoOpPasswordEncoder` doesn't store any state or maintain any internal variables, having a single instance is sufficient.
+- **Memory Efficiency**: The Singleton pattern ensures that only one instance of the class is created, which can help reduce memory usage in large applications.
+
+---
+
+### 5. **Security Warning**
+
+The class is marked with the `@Deprecated` annotation, which is a way of telling developers that this class should not be used in new code or production environments. The deprecation message strongly recommends using a more secure `PasswordEncoder`, like:
+
+- **`BCryptPasswordEncoder`**: Uses the bcrypt algorithm, which includes automatic salting and can be configured to have a high computational cost, making it much harder to crack.
+- **`Pbkdf2PasswordEncoder`**: Uses the PBKDF2 (Password-Based Key Derivation Function 2) algorithm, which applies a hash function multiple times, slowing down brute-force attacks.
+- **`SCryptPasswordEncoder`**: Uses the scrypt algorithm, which is computationally expensive and also requires a significant amount of memory, making it resistant to brute-force attacks on GPUs or ASICs.
+
+Alternatively, developers are advised to use the **`DelegatingPasswordEncoder`**, which supports **password upgrades**. This is useful if you want to start with one hashing algorithm and later move to a more secure one, without breaking existing password storage mechanisms.
+
+---
+
+### 6. **Example Use Case for NoOpPasswordEncoder**
+
+While `NoOpPasswordEncoder` should not be used in production, there are a few situations where it may still be useful:
+
+#### a) **Testing**:
+In unit tests, it might be helpful to skip the complexity of hashing passwords. `NoOpPasswordEncoder` allows you to work directly with plain-text passwords, which can simplify tests.
+
+##### Example Test:
+```java
+@Test
+public void testPasswordMatching() {
+    PasswordEncoder encoder = NoOpPasswordEncoder.getInstance();
+    String rawPassword = "test123";
+    String storedPassword = "test123";
+    
+    assertTrue(encoder.matches(rawPassword, storedPassword));
+}
+```
+
+#### b) **Legacy Systems**:
+If you are working on a legacy system where passwords were stored in plain text and you are migrating to Spring Security, you could temporarily use `NoOpPasswordEncoder` to avoid breaking the system. Over time, you should migrate to a more secure hashing algorithm like bcrypt or Argon2.
+
+---
+
+### 7. **Conclusion**
+
+The `NoOpPasswordEncoder` is a **deprecated**, **insecure** class provided only for legacy or testing purposes. It simply returns the raw password without any encoding, and its `matches()` method performs a plain-text comparison of passwords. While this might simplify testing or migrations for legacy systems, using this class in production poses serious security risks, as it offers no protection against password theft or database breaches.
+
+For any real-world application, you should use a secure password encoder like **BCrypt**, **PBKDF2**, or **Argon2**, which provide strong password hashing, salting, and resistance to brute-force attacks.
+
+```java
+/*
+ * Copyright 2011-2016 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.springframework.security.crypto.password;
+
+import java.security.MessageDigest;
+
+import org.springframework.security.crypto.codec.Hex;
+import org.springframework.security.crypto.codec.Utf8;
+import org.springframework.security.crypto.keygen.BytesKeyGenerator;
+import org.springframework.security.crypto.keygen.KeyGenerators;
+import org.springframework.security.crypto.util.EncodingUtils;
+
+/**
+ * This {@link PasswordEncoder} is provided for legacy purposes only and is not considered
+ * secure.
+ *
+ * A standard {@code PasswordEncoder} implementation that uses SHA-256 hashing with 1024
+ * iterations and a random 8-byte random salt value. It uses an additional system-wide
+ * secret value to provide additional protection.
+ * <p>
+ * The digest algorithm is invoked on the concatenated bytes of the salt, secret and
+ * password.
+ * <p>
+ * If you are developing a new system,
+ * {@link org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder} is a better
+ * choice both in terms of security and interoperability with other languages.
+ *
+ * @author Keith Donald
+ * @author Luke Taylor
+ * @deprecated Digest based password encoding is not considered secure. Instead use an
+ * adaptive one way function like BCryptPasswordEncoder, Pbkdf2PasswordEncoder, or
+ * SCryptPasswordEncoder. Even better use {@link DelegatingPasswordEncoder} which supports
+ * password upgrades. There are no plans to remove this support. It is deprecated to
+ * indicate that this is a legacy implementation and using it is considered insecure.
+ */
+@Deprecated
+public final class StandardPasswordEncoder implements PasswordEncoder {
+
+	private static final int DEFAULT_ITERATIONS = 1024;
+
+	private final Digester digester;
+
+	private final byte[] secret;
+
+	private final BytesKeyGenerator saltGenerator;
+
+	/**
+	 * Constructs a standard password encoder with no additional secret value.
+	 */
+	public StandardPasswordEncoder() {
+		this("");
+	}
+
+	/**
+	 * Constructs a standard password encoder with a secret value which is also included
+	 * in the password hash.
+	 * @param secret the secret key used in the encoding process (should not be shared)
+	 */
+	public StandardPasswordEncoder(CharSequence secret) {
+		this("SHA-256", secret);
+	}
+
+	@Override
+	public String encode(CharSequence rawPassword) {
+		return encode(rawPassword, this.saltGenerator.generateKey());
+	}
+
+	@Override
+	public boolean matches(CharSequence rawPassword, String encodedPassword) {
+		byte[] digested = decode(encodedPassword);
+		byte[] salt = EncodingUtils.subArray(digested, 0, this.saltGenerator.getKeyLength());
+		return MessageDigest.isEqual(digested, digest(rawPassword, salt));
+	}
+
+	private StandardPasswordEncoder(String algorithm, CharSequence secret) {
+		this.digester = new Digester(algorithm, DEFAULT_ITERATIONS);
+		this.secret = Utf8.encode(secret);
+		this.saltGenerator = KeyGenerators.secureRandom();
+	}
+
+	private String encode(CharSequence rawPassword, byte[] salt) {
+		byte[] digest = digest(rawPassword, salt);
+		return new String(Hex.encode(digest));
+	}
+
+	private byte[] digest(CharSequence rawPassword, byte[] salt) {
+		byte[] digest = this.digester.digest(EncodingUtils.concatenate(salt, this.secret, Utf8.encode(rawPassword)));
+		return EncodingUtils.concatenate(salt, digest);
+	}
+
+	private byte[] decode(CharSequence encodedPassword) {
+		return Hex.decode(encodedPassword);
+	}
+
+}
+
+```
+The `StandardPasswordEncoder` class in Spring Security is a legacy implementation of the `PasswordEncoder` interface. It uses **SHA-256 hashing** with 1024 iterations and adds an optional **secret key** and a **random salt** for additional security. However, it has been **deprecated** because it's not considered as secure as modern alternatives such as `BCryptPasswordEncoder`, `Pbkdf2PasswordEncoder`, or `SCryptPasswordEncoder`.
+
+Let's break down this class in detail to understand how it works, why it was useful at the time, and why it’s no longer recommended for use in modern systems.
+
+### 1. **Overview of StandardPasswordEncoder**
+
+The `StandardPasswordEncoder` combines **SHA-256 hashing**, **salting**, and an optional **system-wide secret key** to hash passwords. The idea is to make password storage more secure by:
+- **Hashing** the password multiple times (1024 iterations).
+- Adding a **random salt** to the password to prevent rainbow table attacks.
+- Optionally including a **secret key** known only to the system, making it harder for attackers to reverse-engineer the password hashes.
+
+However, despite these measures, it’s deprecated due to better, more adaptive algorithms (like bcrypt) that have become the standard in password security.
+
+---
+
+### 2. **Key Components of the Class**
+
+#### a) **DEFAULT_ITERATIONS**
+
+```java
+private static final int DEFAULT_ITERATIONS = 1024;
+```
+This defines the number of times the hashing algorithm (SHA-256) is applied to the password during the encoding process. Hashing a password multiple times makes brute-force attacks more difficult.
+
+- **Why 1024?** The default number of iterations is set to 1024 to increase the computational cost of password hashing, which slows down attackers attempting to brute-force the password.
+- **In modern algorithms**: More advanced password encoders like `BCryptPasswordEncoder` and `Pbkdf2PasswordEncoder` also use iterations or work factors, but they are considered much more secure due to better adaptability and built-in features like automatic salting.
+
+#### b) **Secret Key**
+
+```java
+private final byte[] secret;
+```
+The **secret key** is an additional system-wide value that can be included in the password hashing process. The idea is to add another layer of security by concatenating the password, salt, and secret key before hashing.
+
+- **Use Case**: This secret is something that should never be shared outside the system. It makes password hashes unique to the system using them, preventing attackers from using the same hash across multiple systems.
+  
+- **Why It’s Insecure**: While the secret key adds some security, it’s not considered strong enough by modern standards because it’s static. If the key is ever compromised, all password hashes can be more easily attacked.
+
+#### c) **Salting (Random Salt)**
+
+```java
+private final BytesKeyGenerator saltGenerator;
+```
+A **random salt** is generated for each password during hashing using the `KeyGenerators.secureRandom()` method. The salt is a random byte sequence that is combined with the password before hashing to ensure that even if two users have the same password, their hashes will be different.
+
+- **How It Helps**: Salting prevents precomputed rainbow table attacks, where attackers use large tables of precomputed hashes to reverse-engineer passwords. Because the salt is random and unique for each password, the same password will result in different hashes.
+
+#### d) **Digester (SHA-256)**
+
+```java
+private final Digester digester;
+```
+This component handles the actual hashing process. The `Digester` is configured to use the **SHA-256** algorithm with **1024 iterations**.
+
+- **How It Works**: The `digester` is responsible for applying the SHA-256 algorithm to the concatenated bytes of the password, salt, and secret key. It performs 1024 rounds of hashing to increase the computational effort required to break the hash.
+
+---
+
+### 3. **Key Methods**
+
+#### a) **`encode(CharSequence rawPassword)`**
+
+This method hashes the raw password along with a newly generated random salt and returns the resulting encoded password.
+
+##### Example:
+
+```java
+PasswordEncoder encoder = new StandardPasswordEncoder();
+String encodedPassword = encoder.encode("password123");
+System.out.println(encodedPassword);
+```
+
+Here’s how this works:
+1. A **random salt** is generated using the `saltGenerator`.
+2. The password is combined with the salt and secret key, and the SHA-256 hashing algorithm is applied 1024 times.
+3. The resulting hash is returned as a hexadecimal string.
+
+##### Breakdown:
+- **Salting**: The password is first combined with the random salt.
+- **Secret Key**: If a secret key was provided when creating the encoder, it is concatenated with the password and salt.
+- **Hashing**: The combined value is hashed 1024 times using SHA-256, and the final result is returned in hexadecimal format.
+
+#### b) **`matches(CharSequence rawPassword, String encodedPassword)`**
+
+This method checks if the raw password matches the encoded password stored in the database. It works by re-hashing the raw password (using the same salt) and comparing the resulting hash with the stored hash.
+
+##### Example:
+
+```java
+String storedPasswordHash = encoder.encode("password123");
+boolean isMatch = encoder.matches("password123", storedPasswordHash);
+System.out.println(isMatch);  // Output: true if the password matches
+```
+
+Here’s how this works:
+1. The stored encoded password is decoded to extract the **salt**.
+2. The raw password entered by the user is hashed with the extracted salt and secret key using the same process that was used during encoding.
+3. The resulting hash is compared with the stored hash. If they match, the method returns `true`; otherwise, it returns `false`.
+
+##### Security Issue:
+- **SHA-256 is not adaptive**: Unlike bcrypt, SHA-256 does not have a built-in mechanism for adjusting the work factor (cost) over time. This makes it less suitable for modern password hashing because it cannot easily adapt to new security needs.
+
+#### c) **Private Helper Methods:**
+- **`digest(CharSequence rawPassword, byte[] salt)`**: Combines the raw password, salt, and secret key, then hashes the result using the `Digester`.
+- **`encode(CharSequence rawPassword, byte[] salt)`**: Performs the encoding process by generating the digest and encoding it as a hex string.
+- **`decode(CharSequence encodedPassword)`**: Decodes a hex string into a byte array.
+
+---
+
+### 4. **How Encoding Works Internally**
+
+When you encode a password using `StandardPasswordEncoder`, the following steps occur:
+1. A random 8-byte **salt** is generated.
+2. The **password**, **salt**, and **secret key** are concatenated.
+3. The concatenated value is hashed using **SHA-256** **1024 times**.
+4. The final hash (along with the salt) is stored as a hex string.
+
+#### Example Process:
+Let’s say the password is `password123`:
+1. Generate a random salt, e.g., `0xA3B4C5D6E7F8`.
+2. Combine the password, salt, and optional secret key.
+3. Apply SHA-256 hashing 1024 times to the combined value.
+4. Store the final hash as a hex string.
+
+---
+
+### 5. **Why This Approach is Deprecated**
+
+Despite the security features of adding salt and using 1024 iterations of SHA-256, `StandardPasswordEncoder` has several weaknesses:
+1. **SHA-256 is not designed for password hashing**: It is a general-purpose cryptographic hash function. Unlike bcrypt or Argon2, SHA-256 does not automatically handle the salting and iteration process in a secure way.
+2. **No built-in cost factor adjustment**: More modern algorithms like bcrypt or Argon2 allow you to adjust the work factor (cost) as computational power increases. This makes them more secure over time because you can make password hashing more resource-intensive.
+3. **Potential for misuse**: Although `StandardPasswordEncoder` supports salting and iterations, if developers forget to use a secret key or use a weak one, they could inadvertently weaken the password hashes.
+4. **Cryptographic advances**: Newer algorithms like **Argon2** have been specifically designed for password hashing and provide better security against modern attacks, such as hardware-accelerated brute force attacks using GPUs.
+
+---
+
+### 6. **Conclusion**
+
+The `StandardPasswordEncoder` class in Spring Security was designed to provide a **SHA-256-based** password encoder that includes salting and multiple iterations of the hash function. While it was useful at the time for systems that needed a stronger hash than MD5 or SHA-1, it is now **deprecated** because better alternatives exist.
+
+- **BCryptPasswordEncoder**: This is one of the most recommended password encoders because it is specifically designed for password hashing, automatically handles salting, and allows for cost factor adjustment.
+- **Pbkdf2PasswordEncoder**: This algorithm applies a hash function multiple times (key stretching) and is widely used in security protocols.
+- **Argon2PasswordEncoder**: This is the latest and most secure password hashing algorithm, designed to resist both computational and memory-hard attacks.
+
+In modern applications, you should avoid using `StandardPasswordEncoder` and migrate to more secure alternatives like **bcrypt**, **scrypt**, or **Argon2** to ensure your system is protected against contemporary password cracking techniques.
+```java
+/*
+ * Copyright 2002-2022 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.springframework.security.crypto.password;
+
+import java.security.GeneralSecurityException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
+
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.PBEKeySpec;
+
+import org.springframework.security.crypto.codec.Hex;
+import org.springframework.security.crypto.codec.Utf8;
+import org.springframework.security.crypto.keygen.BytesKeyGenerator;
+import org.springframework.security.crypto.keygen.KeyGenerators;
+import org.springframework.security.crypto.util.EncodingUtils;
+
+/**
+ * A {@link PasswordEncoder} implementation that uses PBKDF2 with :
+ * <ul>
+ * <li>a configurable random salt value length (default is {@value #DEFAULT_SALT_LENGTH}
+ * bytes)</li>
+ * <li>a configurable number of iterations (default is {@value #DEFAULT_ITERATIONS})</li>
+ * <li>a configurable key derivation function (see {@link SecretKeyFactoryAlgorithm})</li>
+ * <li>a configurable secret appended to the random salt (default is empty)</li>
+ * </ul>
+ * The algorithm is invoked on the concatenated bytes of the salt, secret and password.
+ *
+ * @author Rob Worsnop
+ * @author Rob Winch
+ * @author Loïc Guibert
+ * @since 4.1
+ */
+public class Pbkdf2PasswordEncoder implements PasswordEncoder {
+
+	private static final int DEFAULT_SALT_LENGTH = 16;
+
+	private static final SecretKeyFactoryAlgorithm DEFAULT_ALGORITHM = SecretKeyFactoryAlgorithm.PBKDF2WithHmacSHA256;
+
+	private static final int DEFAULT_HASH_WIDTH = 256; // SHA-256
+
+	private static final int DEFAULT_ITERATIONS = 310000;
+
+	private final BytesKeyGenerator saltGenerator;
+
+	private final byte[] secret;
+
+	private final int iterations;
+
+	private String algorithm = DEFAULT_ALGORITHM.name();
+
+	private int hashWidth = DEFAULT_HASH_WIDTH;
+
+	// @formatter:off
+	/*
+	The length of the hash should be derived from the hashing algorithm.
+
+	For example:
+		SHA-1 - 160 bits (20 bytes)
+		SHA-256 - 256 bits (32 bytes)
+		SHA-512 - 512 bits (64 bytes)
+
+	However, the original configuration for PBKDF2 was hashWidth=256 and algorithm=SHA-1, which is incorrect.
+	The default configuration has been updated to hashWidth=256 and algorithm=SHA-256 (see gh-10506).
+	In order to preserve backwards compatibility, the variable 'overrideHashWidth' has been introduced
+	to indicate usage of the deprecated constructor that honors the hashWidth parameter.
+	 */
+	// @formatter:on
+	private boolean overrideHashWidth = true;
+
+	private boolean encodeHashAsBase64;
+
+	/**
+	 * Constructs a PBKDF2 password encoder with a secret value as well as salt length,
+	 * iterations and hash width.
+	 * @param secret the secret
+	 * @param saltLength the salt length (in bytes)
+	 * @param iterations the number of iterations. Users should aim for taking about .5
+	 * seconds on their own system.
+	 * @param hashWidth the size of the hash (in bits)
+	 * @since 5.5
+	 * @deprecated Use
+	 * {@link #Pbkdf2PasswordEncoder(CharSequence, int, int, SecretKeyFactoryAlgorithm)}
+	 * instead
+	 */
+	@Deprecated
+	public Pbkdf2PasswordEncoder(CharSequence secret, int saltLength, int iterations, int hashWidth) {
+		this.secret = Utf8.encode(secret);
+		this.saltGenerator = KeyGenerators.secureRandom(saltLength);
+		this.iterations = iterations;
+		this.hashWidth = hashWidth;
+		this.algorithm = SecretKeyFactoryAlgorithm.PBKDF2WithHmacSHA1.name();
+		this.overrideHashWidth = false; // Honor 'hashWidth' to preserve backwards
+										// compatibility
+	}
+
+	/**
+	 * Constructs a PBKDF2 password encoder with a secret value as well as salt length,
+	 * iterations and algorithm.
+	 * @param secret the secret
+	 * @param saltLength the salt length (in bytes)
+	 * @param iterations the number of iterations. Users should aim for taking about .5
+	 * seconds on their own system.
+	 * @param secretKeyFactoryAlgorithm the algorithm to use
+	 * @since 5.8
+	 */
+	public Pbkdf2PasswordEncoder(CharSequence secret, int saltLength, int iterations,
+			SecretKeyFactoryAlgorithm secretKeyFactoryAlgorithm) {
+		this.secret = Utf8.encode(secret);
+		this.saltGenerator = KeyGenerators.secureRandom(saltLength);
+		this.iterations = iterations;
+		setAlgorithm(secretKeyFactoryAlgorithm);
+	}
+
+	/**
+	 * Constructs a PBKDF2 password encoder with no additional secret value. There will be
+	 * a salt length of 8 bytes, 185,000 iterations, SHA-1 algorithm and a hash length of
+	 * 256 bits. The default is based upon aiming for .5 seconds to validate the password
+	 * when this class was added. Users should tune password verification to their own
+	 * systems.
+	 * @return the {@link Pbkdf2PasswordEncoder}
+	 * @since 5.8
+	 * @deprecated Use {@link #defaultsForSpringSecurity_v5_8()} instead
+	 */
+	@Deprecated
+	public static Pbkdf2PasswordEncoder defaultsForSpringSecurity_v5_5() {
+		return new Pbkdf2PasswordEncoder("", 8, 185000, 256);
+	}
+
+	/**
+	 * Constructs a PBKDF2 password encoder with no additional secret value. There will be
+	 * a salt length of 16 bytes, 310,000 iterations, SHA-256 algorithm and a hash length
+	 * of 256 bits. The default is based upon aiming for .5 seconds to validate the
+	 * password when this class was added. Users should tune password verification to
+	 * their own systems.
+	 * @return the {@link Pbkdf2PasswordEncoder}
+	 * @since 5.8
+	 */
+	public static Pbkdf2PasswordEncoder defaultsForSpringSecurity_v5_8() {
+		return new Pbkdf2PasswordEncoder("", DEFAULT_SALT_LENGTH, DEFAULT_ITERATIONS, DEFAULT_ALGORITHM);
+	}
+
+	/**
+	 * Sets the algorithm to use. See <a href=
+	 * "https://docs.oracle.com/javase/8/docs/technotes/guides/security/StandardNames.html#SecretKeyFactory">SecretKeyFactory
+	 * Algorithms</a>
+	 * @param secretKeyFactoryAlgorithm the algorithm to use (i.e.
+	 * {@code SecretKeyFactoryAlgorithm.PBKDF2WithHmacSHA1},
+	 * {@code SecretKeyFactoryAlgorithm.PBKDF2WithHmacSHA256},
+	 * {@code SecretKeyFactoryAlgorithm.PBKDF2WithHmacSHA512})
+	 * @since 5.0
+	 */
+	public void setAlgorithm(SecretKeyFactoryAlgorithm secretKeyFactoryAlgorithm) {
+		if (secretKeyFactoryAlgorithm == null) {
+			throw new IllegalArgumentException("secretKeyFactoryAlgorithm cannot be null");
+		}
+		String algorithmName = secretKeyFactoryAlgorithm.name();
+		try {
+			SecretKeyFactory.getInstance(algorithmName);
+			this.algorithm = algorithmName;
+		}
+		catch (NoSuchAlgorithmException ex) {
+			throw new IllegalArgumentException("Invalid algorithm '" + algorithmName + "'.", ex);
+		}
+		if (this.overrideHashWidth) {
+			this.hashWidth = SecretKeyFactoryAlgorithm.PBKDF2WithHmacSHA1.equals(secretKeyFactoryAlgorithm) ? 160
+					: SecretKeyFactoryAlgorithm.PBKDF2WithHmacSHA256.equals(secretKeyFactoryAlgorithm) ? 256 : 512;
+		}
+	}
+
+	/**
+	 * Sets if the resulting hash should be encoded as Base64. The default is false which
+	 * means it will be encoded in Hex.
+	 * @param encodeHashAsBase64 true if encode as Base64, false if should use Hex
+	 * (default)
+	 */
+	public void setEncodeHashAsBase64(boolean encodeHashAsBase64) {
+		this.encodeHashAsBase64 = encodeHashAsBase64;
+	}
+
+	@Override
+	public String encode(CharSequence rawPassword) {
+		byte[] salt = this.saltGenerator.generateKey();
+		byte[] encoded = encode(rawPassword, salt);
+		return encode(encoded);
+	}
+
+	private String encode(byte[] bytes) {
+		if (this.encodeHashAsBase64) {
+			return Base64.getEncoder().encodeToString(bytes);
+		}
+		return String.valueOf(Hex.encode(bytes));
+	}
+
+	@Override
+	public boolean matches(CharSequence rawPassword, String encodedPassword) {
+		byte[] digested = decode(encodedPassword);
+		byte[] salt = EncodingUtils.subArray(digested, 0, this.saltGenerator.getKeyLength());
+		return MessageDigest.isEqual(digested, encode(rawPassword, salt));
+	}
+
+	private byte[] decode(String encodedBytes) {
+		if (this.encodeHashAsBase64) {
+			return Base64.getDecoder().decode(encodedBytes);
+		}
+		return Hex.decode(encodedBytes);
+	}
+
+	private byte[] encode(CharSequence rawPassword, byte[] salt) {
+		try {
+			PBEKeySpec spec = new PBEKeySpec(rawPassword.toString().toCharArray(),
+					EncodingUtils.concatenate(salt, this.secret), this.iterations, this.hashWidth);
+			SecretKeyFactory skf = SecretKeyFactory.getInstance(this.algorithm);
+			return EncodingUtils.concatenate(salt, skf.generateSecret(spec).getEncoded());
+		}
+		catch (GeneralSecurityException ex) {
+			throw new IllegalStateException("Could not create hash", ex);
+		}
+	}
+
+	/**
+	 * The Algorithm used for creating the {@link SecretKeyFactory}
+	 *
+	 * @since 5.0
+	 */
+	public enum SecretKeyFactoryAlgorithm {
+
+		PBKDF2WithHmacSHA1, PBKDF2WithHmacSHA256, PBKDF2WithHmacSHA512
+
+	}
+
+}
+
+```
+The `Pbkdf2PasswordEncoder` is a password encoder in Spring Security that uses the **PBKDF2 (Password-Based Key Derivation Function 2)** algorithm for hashing passwords. PBKDF2 is designed to make password hashing computationally expensive, which helps protect against brute-force attacks. The PBKDF2 algorithm iteratively applies a cryptographic hash function (such as **HMAC-SHA256**) to the password, along with a random **salt** and, optionally, a system-wide **secret**, to generate a secure password hash.
+
+Let’s break down the code in detail to understand how this class works, why it is secure, and how it can be customized for different use cases.
+
+### 1. **Key Components of the `Pbkdf2PasswordEncoder`**
+
+#### a) **Salt Length**
+```java
+private static final int DEFAULT_SALT_LENGTH = 16;
+```
+- The salt length specifies the number of bytes used to generate a random salt.
+- Salt is added to the password before hashing to ensure that even if two users have the same password, the resulting hashes will be different.
+- The default salt length is **16 bytes**, which is considered a secure default value.
+
+#### b) **Hash Width**
+```java
+private static final int DEFAULT_HASH_WIDTH = 256; // SHA-256
+```
+- The hash width specifies the size of the resulting password hash.
+- **256 bits** is the default, which corresponds to the output size of SHA-256 (a common, secure cryptographic hash function).
+- For comparison, SHA-512 produces a 512-bit hash.
+
+#### c) **Iterations**
+```java
+private static final int DEFAULT_ITERATIONS = 310000;
+```
+- The number of iterations (also known as the **work factor**) determines how many times the hashing function is applied to the password.
+- A higher number of iterations makes the hashing process slower, increasing the computational cost of brute-force attacks.
+- The default value is **310,000 iterations**, which is based on modern security standards (approximately 0.5 seconds per hash on typical hardware).
+
+#### d) **Secret**
+```java
+private final byte[] secret;
+```
+- The secret is an optional system-wide key that is concatenated with the password and salt before hashing. This adds another layer of protection, ensuring that an attacker who obtains the salt and hash still cannot easily crack the password without knowing the secret.
+- If no secret is provided, this value is an empty byte array.
+
+#### e) **Algorithm**
+```java
+private String algorithm = DEFAULT_ALGORITHM.name();
+```
+- The algorithm specifies which cryptographic hash function is used in the PBKDF2 process.
+- The default is **PBKDF2WithHmacSHA256**, which uses HMAC-SHA256 as the hash function.
+
+#### f) **Salt Generator**
+```java
+private final BytesKeyGenerator saltGenerator;
+```
+- The `saltGenerator` is responsible for generating a random salt of the specified length (in this case, 16 bytes by default).
+- Salts are unique for each password and stored alongside the hash.
+
+---
+
+### 2. **Constructors**
+
+The class provides several constructors to allow customization of the password encoder.
+
+#### a) **Default Constructor**
+
+```java
+public static Pbkdf2PasswordEncoder defaultsForSpringSecurity_v5_8() {
+    return new Pbkdf2PasswordEncoder("", DEFAULT_SALT_LENGTH, DEFAULT_ITERATIONS, DEFAULT_ALGORITHM);
+}
+```
+- This creates a password encoder with default values:
+  - **16-byte salt**
+  - **310,000 iterations**
+  - **SHA-256** as the hash function
+  - No secret key (empty string)
+
+#### b) **Custom Constructor with Algorithm**
+
+```java
+public Pbkdf2PasswordEncoder(CharSequence secret, int saltLength, int iterations, SecretKeyFactoryAlgorithm secretKeyFactoryAlgorithm) {
+    this.secret = Utf8.encode(secret);
+    this.saltGenerator = KeyGenerators.secureRandom(saltLength);
+    this.iterations = iterations;
+    setAlgorithm(secretKeyFactoryAlgorithm);
+}
+```
+- This constructor allows the caller to specify:
+  - A **secret** to add to the password and salt
+  - The length of the **salt**
+  - The number of **iterations**
+  - The **hashing algorithm** to use (e.g., **PBKDF2WithHmacSHA256** or **PBKDF2WithHmacSHA512**)
+  
+  This enables fine-tuned control over the security settings of the password hashing process.
+
+#### Example:
+
+```java
+Pbkdf2PasswordEncoder encoder = new Pbkdf2PasswordEncoder("mySecretKey", 16, 500000, SecretKeyFactoryAlgorithm.PBKDF2WithHmacSHA512);
+String hashedPassword = encoder.encode("password123");
+System.out.println(hashedPassword);
+```
+
+- This creates a password encoder that uses a 16-byte salt, 500,000 iterations, and **HMAC-SHA512** for hashing, and adds the secret `mySecretKey` to the hash process.
+
+---
+
+### 3. **Key Methods**
+
+#### a) **`encode(CharSequence rawPassword)`**
+
+This method takes the raw password, generates a salt, hashes the password with the salt (and optional secret), and returns the resulting encoded password as a hex string or Base64 (if configured).
+
+##### Example:
+```java
+PasswordEncoder encoder = Pbkdf2PasswordEncoder.defaultsForSpringSecurity_v5_8();
+String hashedPassword = encoder.encode("password123");
+System.out.println(hashedPassword);
+```
+
+##### How it Works:
+1. A random salt is generated using the `saltGenerator`.
+2. The password, salt, and secret are concatenated.
+3. The **PBKDF2** algorithm is applied to the concatenated bytes for the specified number of iterations.
+4. The resulting hash is encoded as a hexadecimal string or Base64 (depending on configuration) and returned.
+
+##### Breakdown:
+- **Salting**: A new random salt is generated each time a password is hashed, ensuring that even if two users have the same password, their hashes will be different.
+- **Iterations**: By default, 310,000 iterations are applied to make the hash computationally expensive, which slows down brute-force attacks.
+- **Hex Encoding**: By default, the hash is encoded as a hexadecimal string, but it can also be encoded as Base64 for compactness.
+
+#### b) **`matches(CharSequence rawPassword, String encodedPassword)`**
+
+This method verifies if a raw password matches the stored encoded password.
+
+##### Example:
+```java
+boolean isMatch = encoder.matches("password123", storedPasswordHash);
+System.out.println(isMatch); // Output: true if the password matches
+```
+
+##### How it Works:
+1. The stored encoded password is decoded to extract the salt.
+2. The raw password is re-hashed using the same salt and the same number of iterations as when it was first hashed.
+3. The newly computed hash is compared with the stored hash.
+4. If the hashes match, the method returns `true`; otherwise, it returns `false`.
+
+##### Security:
+- **Salt Reuse**: The same salt must be used when verifying the password to ensure the same hash is produced.
+- **Constant-Time Comparison**: The `MessageDigest.isEqual()` method is used to perform a constant-time comparison of the two hashes, which prevents timing attacks.
+
+#### c) **`setEncodeHashAsBase64(boolean encodeHashAsBase64)`**
+
+This method allows the caller to specify whether the resulting hash should be encoded as **Base64** instead of hexadecimal.
+
+##### Example:
+```java
+encoder.setEncodeHashAsBase64(true);
+String hashedPassword = encoder.encode("password123");
+System.out.println(hashedPassword); // Output: Base64 encoded password
+```
+
+By setting `encodeHashAsBase64` to `true`, the resulting password hash will be shorter and more compact than a hexadecimal string.
+
+---
+
+### 4. **Customizing the Algorithm**
+
+The encoder supports different algorithms, such as:
+- **PBKDF2WithHmacSHA1** (SHA-1)
+- **PBKDF2WithHmacSHA256** (SHA-256)
+- **PBKDF2WithHmacSHA512** (SHA-512)
+
+The algorithm can be customized by calling the `setAlgorithm()` method or by passing it as a constructor parameter.
+
+##### Example:
+```java
+encoder.setAlgorithm(SecretKeyFactoryAlgorithm.PBKDF2WithHmacSHA512);
+```
+
+This allows you to choose stronger hash functions (e.g., SHA-512) for better security.
+
+---
+
+### 5. **Why PBKDF2 is Secure**
+
+The PBKDF2 algorithm is secure for password hashing for several reasons:
+- **Work Factor**: The number of iterations can be increased as computational power grows, making the hash function slower and more resistant to brute-force attacks.
+- **Salting**: A random salt ensures that even if two users have the same password, their hashes will differ, preventing rainbow table attacks.
+- **HMAC-Based Hashing**: PBKDF2 uses HMAC, a construction that provides integrity and security in cryptographic hashing.
+- **Customizable Security**: PBKDF2 allows you to choose different hash functions (SHA-256, SHA-512), salt lengths, and iteration counts, giving you fine-grained control over the hashing process.
+
+---
+
+### 6. **Deprecation and Evolution**
+
+Older constructors, such as those using SHA-1, are marked as deprecated. Spring Security encourages users to migrate to stronger defaults, like SHA-256 or SHA-512, and to use the new factory methods introduced in version 5.8.
+
+---
+
+### Conclusion
+
+The `Pbkdf2PasswordEncoder` is a highly customizable and secure password encoder that allows you to adjust key parameters like salt length
+
+, iteration count, and hash function. It is designed to protect against common password attacks, such as brute-force and rainbow table attacks, by introducing computational expense (iterations) and uniqueness (salting). While it is a strong password hashing algorithm, more modern alternatives like **Argon2** may provide better security for specific use cases, particularly those involving resistance to GPU and ASIC attacks.
+
+```java
+/*
+ * Copyright 2002-2011 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.springframework.security.crypto.bcrypt;
+
+import java.security.SecureRandom;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import org.springframework.security.crypto.password.PasswordEncoder;
+
+/**
+ * Implementation of PasswordEncoder that uses the BCrypt strong hashing function. Clients
+ * can optionally supply a "version" ($2a, $2b, $2y) and a "strength" (a.k.a. log rounds
+ * in BCrypt) and a SecureRandom instance. The larger the strength parameter the more work
+ * will have to be done (exponentially) to hash the passwords. The default value is 10.
+ *
+ * @author Dave Syer
+ */
+public class BCryptPasswordEncoder implements PasswordEncoder {
+
+	private Pattern BCRYPT_PATTERN = Pattern.compile("\\A\\$2(a|y|b)?\\$(\\d\\d)\\$[./0-9A-Za-z]{53}");
+
+	private final Log logger = LogFactory.getLog(getClass());
+
+	private final int strength;
+
+	private final BCryptVersion version;
+
+	private final SecureRandom random;
+
+	public BCryptPasswordEncoder() {
+		this(-1);
+	}
+
+	/**
+	 * @param strength the log rounds to use, between 4 and 31
+	 */
+	public BCryptPasswordEncoder(int strength) {
+		this(strength, null);
+	}
+
+	/**
+	 * @param version the version of bcrypt, can be 2a,2b,2y
+	 */
+	public BCryptPasswordEncoder(BCryptVersion version) {
+		this(version, null);
+	}
+
+	/**
+	 * @param version the version of bcrypt, can be 2a,2b,2y
+	 * @param random the secure random instance to use
+	 */
+	public BCryptPasswordEncoder(BCryptVersion version, SecureRandom random) {
+		this(version, -1, random);
+	}
+
+	/**
+	 * @param strength the log rounds to use, between 4 and 31
+	 * @param random the secure random instance to use
+	 */
+	public BCryptPasswordEncoder(int strength, SecureRandom random) {
+		this(BCryptVersion.$2A, strength, random);
+	}
+
+	/**
+	 * @param version the version of bcrypt, can be 2a,2b,2y
+	 * @param strength the log rounds to use, between 4 and 31
+	 */
+	public BCryptPasswordEncoder(BCryptVersion version, int strength) {
+		this(version, strength, null);
+	}
+
+	/**
+	 * @param version the version of bcrypt, can be 2a,2b,2y
+	 * @param strength the log rounds to use, between 4 and 31
+	 * @param random the secure random instance to use
+	 */
+	public BCryptPasswordEncoder(BCryptVersion version, int strength, SecureRandom random) {
+		if (strength != -1 && (strength < BCrypt.MIN_LOG_ROUNDS || strength > BCrypt.MAX_LOG_ROUNDS)) {
+			throw new IllegalArgumentException("Bad strength");
+		}
+		this.version = version;
+		this.strength = (strength == -1) ? 10 : strength;
+		this.random = random;
+	}
+
+	@Override
+	public String encode(CharSequence rawPassword) {
+		if (rawPassword == null) {
+			throw new IllegalArgumentException("rawPassword cannot be null");
+		}
+		String salt = getSalt();
+		return BCrypt.hashpw(rawPassword.toString(), salt);
+	}
+
+	private String getSalt() {
+		if (this.random != null) {
+			return BCrypt.gensalt(this.version.getVersion(), this.strength, this.random);
+		}
+		return BCrypt.gensalt(this.version.getVersion(), this.strength);
+	}
+
+	@Override
+	public boolean matches(CharSequence rawPassword, String encodedPassword) {
+		if (rawPassword == null) {
+			throw new IllegalArgumentException("rawPassword cannot be null");
+		}
+		if (encodedPassword == null || encodedPassword.length() == 0) {
+			this.logger.warn("Empty encoded password");
+			return false;
+		}
+		if (!this.BCRYPT_PATTERN.matcher(encodedPassword).matches()) {
+			this.logger.warn("Encoded password does not look like BCrypt");
+			return false;
+		}
+		return BCrypt.checkpw(rawPassword.toString(), encodedPassword);
+	}
+
+	@Override
+	public boolean upgradeEncoding(String encodedPassword) {
+		if (encodedPassword == null || encodedPassword.length() == 0) {
+			this.logger.warn("Empty encoded password");
+			return false;
+		}
+		Matcher matcher = this.BCRYPT_PATTERN.matcher(encodedPassword);
+		if (!matcher.matches()) {
+			throw new IllegalArgumentException("Encoded password does not look like BCrypt: " + encodedPassword);
+		}
+		int strength = Integer.parseInt(matcher.group(2));
+		return strength < this.strength;
+	}
+
+	/**
+	 * Stores the default bcrypt version for use in configuration.
+	 *
+	 * @author Lin Feng
+	 */
+	public enum BCryptVersion {
+
+		$2A("$2a"),
+
+		$2Y("$2y"),
+
+		$2B("$2b");
+
+		private final String version;
+
+		BCryptVersion(String version) {
+			this.version = version;
+		}
+
+		public String getVersion() {
+			return this.version;
+		}
+
+	}
+
+}
+
+```
+The `BCryptPasswordEncoder` class in Spring Security implements the `PasswordEncoder` interface using the **BCrypt** hashing function. BCrypt is designed to be a computationally expensive, adaptive cryptographic hash function that is widely used for password hashing due to its security features, including salting, adjustable work factor (log rounds), and resistance to brute-force attacks.
+
+### Overview of BCrypt
+
+BCrypt is a popular algorithm for password hashing for several reasons:
+- **Salting**: It generates a random salt for each password, ensuring that even if two users have the same password, their hashes will be different.
+- **Work Factor (Strength)**: The work factor can be adjusted to increase the computational cost of generating the hash. This makes it harder for attackers to brute-force the password.
+- **Adaptive**: The work factor can be increased over time as computational power increases, ensuring that the hashing process remains slow enough to deter brute-force attacks.
+
+Now, let's break down the key components and methods of `BCryptPasswordEncoder` and understand how it works with detailed examples.
+
+---
+
+### 1. **Key Components of `BCryptPasswordEncoder`**
+
+#### a) **BCrypt Version**
+```java
+private final BCryptVersion version;
+```
+BCrypt has different versions: `$2a`, `$2y`, and `$2b`. These versions correspond to slight variations in the implementation of the BCrypt algorithm. By default, `BCryptPasswordEncoder` uses the `$2a` version, but you can configure it to use `$2y` or `$2b`.
+
+- **$2a**: This is the original version of BCrypt that has been widely used for a long time.
+- **$2y**: This version fixes a bug in the `$2a` implementation related to handling null bytes in passwords.
+- **$2b**: This is the most recent version that includes several security improvements.
+
+#### Example:
+```java
+BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(BCryptVersion.$2B);
+```
+In this example, the encoder uses the `$2b` version of BCrypt, which is recommended for modern applications.
+
+#### b) **Strength (Work Factor)**
+```java
+private final int strength;
+```
+The **strength** parameter, also known as the log rounds, determines the computational cost of generating the hash. The higher the strength, the more computationally expensive it is to hash the password. This makes it harder for attackers to brute-force the password.
+
+- The default value is **10**.
+- The value can be set between **4 and 31**.
+
+#### Example:
+```java
+BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
+```
+In this example, the encoder uses a strength of 12, which means it will take longer to generate the hash, providing better protection against brute-force attacks.
+
+#### c) **Secure Random**
+```java
+private final SecureRandom random;
+```
+A `SecureRandom` instance can be provided to generate random salts. If no `SecureRandom` instance is provided, the system will use the default random number generator.
+
+- The `SecureRandom` instance is used to ensure that the salt is generated securely and unpredictably.
+  
+#### Example:
+```java
+SecureRandom random = new SecureRandom();
+BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(BCryptVersion.$2A, 12, random);
+```
+In this example, a custom `SecureRandom` instance is provided to generate salts for the hashing process.
+
+---
+
+### 2. **Key Methods of `BCryptPasswordEncoder`**
+
+#### a) **`encode(CharSequence rawPassword)`**
+
+This method hashes the raw password using BCrypt. It generates a random salt, applies the BCrypt hashing function, and returns the hashed password.
+
+##### Example:
+```java
+BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+String hashedPassword = encoder.encode("password123");
+System.out.println(hashedPassword);
+```
+
+#### How it Works:
+1. A random **salt** is generated using `gensalt()`.
+2. The raw password is concatenated with the salt.
+3. The **BCrypt** hashing function is applied, resulting in a hash that includes the salt and metadata (version and strength).
+4. The resulting hashed password is returned as a string.
+
+##### Sample Output:
+```
+$2a$10$e5dEhaOPTX9iwv1LezkhbOJrFZn9Ghv.e8XNdV8uXyOHmMckuI76K
+```
+- **$2a**: The version of BCrypt used (`$2a`).
+- **10**: The log rounds (strength), indicating 2^10 (1024) iterations of the hashing process.
+- **e5dEhaOPTX9iwv1LezkhbO**: The salt used to hash the password.
+- The remainder is the hashed password.
+
+#### b) **`matches(CharSequence rawPassword, String encodedPassword)`**
+
+This method checks if the raw password matches the stored hashed password. It hashes the raw password using the same salt stored in the hashed password and compares the result with the stored hash.
+
+##### Example:
+```java
+BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+String storedPasswordHash = encoder.encode("password123");
+boolean isMatch = encoder.matches("password123", storedPasswordHash);
+System.out.println(isMatch); // Output: true
+```
+
+#### How it Works:
+1. The method extracts the **salt** and **hash** from the `encodedPassword`.
+2. It re-hashes the `rawPassword` using the same salt and compares the result with the `encodedPassword`.
+3. If the hashes match, the method returns `true`; otherwise, it returns `false`.
+
+#### Security:
+- The method uses **constant-time comparison** to prevent timing attacks. This means that the comparison takes the same amount of time regardless of how many characters match, making it harder for attackers to infer information based on the time taken.
+
+#### c) **`upgradeEncoding(String encodedPassword)`**
+
+This method checks if the stored password hash needs to be upgraded to a stronger encoding based on the current **strength** (log rounds) of the encoder.
+
+##### Example:
+```java
+BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
+String oldHash = encoder.encode("password123"); // Uses strength 10 by default
+boolean needsUpgrade = encoder.upgradeEncoding(oldHash);
+System.out.println(needsUpgrade); // Output: true if the strength is lower than 12
+```
+
+#### How it Works:
+1. The method extracts the **strength** from the stored hash by reading the log rounds from the `encodedPassword`.
+2. If the stored strength is lower than the current strength of the encoder, it returns `true`, indicating that the password should be re-hashed with a stronger strength.
+
+---
+
+### 3. **BCrypt Hashing Process**
+
+BCrypt is based on the Blowfish cipher and uses a key expansion function that is computationally expensive, making it difficult for attackers to perform brute-force attacks.
+
+#### Hashing Steps:
+1. **Salt Generation**: A random 16-byte salt is generated.
+2. **Key Expansion**: The password and salt are processed by the Blowfish cipher.
+3. **Hashing**: The key expansion and hashing are performed for **2^log rounds** iterations.
+4. **Result**: The final hashed password is returned, which includes the salt, version, and work factor.
+
+### 4. **BCrypt Pattern**
+```java
+private Pattern BCRYPT_PATTERN = Pattern.compile("\\A\\$2(a|y|b)?\\$(\\d\\d)\\$[./0-9A-Za-z]{53}");
+```
+This regular expression is used to validate that a given string follows the **BCrypt format**:
+- **$2a**, **$2b**, or **$2y**: Version of BCrypt.
+- **\d\d**: The log rounds (strength), typically a two-digit number (e.g., 10 for 2^10 iterations).
+- **53 characters**: The salt and hash portion of the password, which is a combination of alphanumeric characters.
+
+---
+
+### 5. **Example Usage in a Real Application**
+
+#### User Registration:
+1. The user enters a password (`password123`).
+2. The `BCryptPasswordEncoder` hashes the password with a random salt.
+3. The hashed password is stored in the database.
+
+```java
+BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+String hashedPassword = encoder.encode("password123");
+// Store hashedPassword in the database
+```
+
+#### User Login:
+1. The user enters their password (`password123`).
+2. The system retrieves the hashed password from the database.
+3. The `matches()` method re-hashes the entered password with the stored salt and compares it to the stored hash.
+
+```java
+String storedPasswordHash = getStoredPasswordFromDatabase();
+boolean isMatch = encoder.matches("password123", storedPasswordHash);
+if (isMatch) {
+    // Login success
+} else {
+    // Login failure
+}
+```
+
+---
+
+### 6. **Conclusion**
+
+`BCryptPasswordEncoder` is a secure and widely used password hashing mechanism due to its adaptive nature, salting, and resistance to brute-force attacks. It is a great choice for securely storing passwords in any modern application.
+
+#### Key Benefits:
+- **Salting**: Random salts ensure that even identical passwords produce different hashes.
+- **Work Factor**: The computational cost of hashing can be increased over time to stay ahead of increases in computing power.
+- **Security**: BCrypt is widely recognized as a secure hashing algorithm for passwords and is resistant to attacks such as rainbow table attacks.
+
+#### Use Cases:
+- Securely storing passwords in any application.
+- Ensuring password security with the ability to upgrade the encoding as security requirements increase over time.
+
+
+```java
+/*
+ * Copyright 2002-2022 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.springframework.security.crypto.scrypt;
+
+import java.security.MessageDigest;
+import java.util.Base64;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.bouncycastle.crypto.generators.SCrypt;
+
+import org.springframework.security.crypto.codec.Utf8;
+import org.springframework.security.crypto.keygen.BytesKeyGenerator;
+import org.springframework.security.crypto.keygen.KeyGenerators;
+import org.springframework.security.crypto.password.PasswordEncoder;
+
+/**
+ * <p>
+ * Implementation of PasswordEncoder that uses the SCrypt hashing function. Clients can
+ * optionally supply a cpu cost parameter, a memory cost parameter and a parallelization
+ * parameter.
+ * </p>
+ *
+ * <p>
+ * A few <a href=
+ * "http://bouncy-castle.1462172.n4.nabble.com/Java-Bouncy-Castle-scrypt-implementation-td4656832.html">
+ * warnings</a>:
+ * </p>
+ *
+ * <ul>
+ * <li>The currently implementation uses Bouncy castle which does not exploit
+ * parallelism/optimizations that password crackers will, so there is an unnecessary
+ * asymmetry between attacker and defender.</li>
+ * <li>Scrypt is based on Salsa20 which performs poorly in Java (on par with AES) but
+ * performs awesome (~4-5x faster) on SIMD capable platforms</li>
+ * <li>While there are some that would disagree, consider reading -
+ * <a href="https://blog.ircmaxell.com/2014/03/why-i-dont-recommend-scrypt.html"> Why I
+ * Don't Recommend Scrypt</a> (for password storage)</li>
+ * </ul>
+ *
+ * @author Shazin Sadakath
+ * @author Rob Winch
+ *
+ */
+public class SCryptPasswordEncoder implements PasswordEncoder {
+
+	private static final int DEFAULT_CPU_COST = 65536;
+
+	private static final int DEFAULT_MEMORY_COST = 8;
+
+	private static final int DEFAULT_PARALLELISM = 1;
+
+	private static final int DEFAULT_KEY_LENGTH = 32;
+
+	private static final int DEFAULT_SALT_LENGTH = 16;
+
+	private final Log logger = LogFactory.getLog(getClass());
+
+	private final int cpuCost;
+
+	private final int memoryCost;
+
+	private final int parallelization;
+
+	private final int keyLength;
+
+	private final BytesKeyGenerator saltGenerator;
+
+	/**
+	 * Constructs a SCrypt password encoder with the provided parameters.
+	 * @param cpuCost cpu cost of the algorithm (as defined in scrypt this is N). must be
+	 * power of 2 greater than 1. Default is currently 65,536 or 2^16)
+	 * @param memoryCost memory cost of the algorithm (as defined in scrypt this is r)
+	 * Default is currently 8.
+	 * @param parallelization the parallelization of the algorithm (as defined in scrypt
+	 * this is p) Default is currently 1. Note that the implementation does not currently
+	 * take advantage of parallelization.
+	 * @param keyLength key length for the algorithm (as defined in scrypt this is dkLen).
+	 * The default is currently 32.
+	 * @param saltLength salt length (as defined in scrypt this is the length of S). The
+	 * default is currently 16.
+	 */
+	public SCryptPasswordEncoder(int cpuCost, int memoryCost, int parallelization, int keyLength, int saltLength) {
+		if (cpuCost <= 1) {
+			throw new IllegalArgumentException("Cpu cost parameter must be > 1.");
+		}
+		if (memoryCost == 1 && cpuCost > 65536) {
+			throw new IllegalArgumentException("Cpu cost parameter must be > 1 and < 65536.");
+		}
+		if (memoryCost < 1) {
+			throw new IllegalArgumentException("Memory cost must be >= 1.");
+		}
+		int maxParallel = Integer.MAX_VALUE / (128 * memoryCost * 8);
+		if (parallelization < 1 || parallelization > maxParallel) {
+			throw new IllegalArgumentException("Parallelisation parameter p must be >= 1 and <= " + maxParallel
+					+ " (based on block size r of " + memoryCost + ")");
+		}
+		if (keyLength < 1 || keyLength > Integer.MAX_VALUE) {
+			throw new IllegalArgumentException("Key length must be >= 1 and <= " + Integer.MAX_VALUE);
+		}
+		if (saltLength < 1 || saltLength > Integer.MAX_VALUE) {
+			throw new IllegalArgumentException("Salt length must be >= 1 and <= " + Integer.MAX_VALUE);
+		}
+		this.cpuCost = cpuCost;
+		this.memoryCost = memoryCost;
+		this.parallelization = parallelization;
+		this.keyLength = keyLength;
+		this.saltGenerator = KeyGenerators.secureRandom(saltLength);
+	}
+
+	/**
+	 * Constructs a SCrypt password encoder with cpu cost of 16,384, memory cost of 8,
+	 * parallelization of 1, a key length of 32 and a salt length of 64 bytes.
+	 * @return the {@link SCryptPasswordEncoder}
+	 * @since 5.8
+	 * @deprecated Use {@link #defaultsForSpringSecurity_v5_8()} instead
+	 */
+	@Deprecated
+	public static SCryptPasswordEncoder defaultsForSpringSecurity_v4_1() {
+		return new SCryptPasswordEncoder(16384, 8, 1, 32, 64);
+	}
+
+	/**
+	 * Constructs a SCrypt password encoder with cpu cost of 65,536, memory cost of 8,
+	 * parallelization of 1, a key length of 32 and a salt length of 16 bytes.
+	 * @return the {@link SCryptPasswordEncoder}
+	 * @since 5.8
+	 */
+	public static SCryptPasswordEncoder defaultsForSpringSecurity_v5_8() {
+		return new SCryptPasswordEncoder(DEFAULT_CPU_COST, DEFAULT_MEMORY_COST, DEFAULT_PARALLELISM, DEFAULT_KEY_LENGTH,
+				DEFAULT_SALT_LENGTH);
+	}
+
+	@Override
+	public String encode(CharSequence rawPassword) {
+		return digest(rawPassword, this.saltGenerator.generateKey());
+	}
+
+	@Override
+	public boolean matches(CharSequence rawPassword, String encodedPassword) {
+		if (encodedPassword == null || encodedPassword.length() < this.keyLength) {
+			this.logger.warn("Empty encoded password");
+			return false;
+		}
+		return decodeAndCheckMatches(rawPassword, encodedPassword);
+	}
+
+	@Override
+	public boolean upgradeEncoding(String encodedPassword) {
+		if (encodedPassword == null || encodedPassword.isEmpty()) {
+			return false;
+		}
+		String[] parts = encodedPassword.split("\\$");
+		if (parts.length != 4) {
+			throw new IllegalArgumentException("Encoded password does not look like SCrypt: " + encodedPassword);
+		}
+		long params = Long.parseLong(parts[1], 16);
+		int cpuCost = (int) Math.pow(2, params >> 16 & 0xffff);
+		int memoryCost = (int) params >> 8 & 0xff;
+		int parallelization = (int) params & 0xff;
+		return cpuCost < this.cpuCost || memoryCost < this.memoryCost || parallelization < this.parallelization;
+	}
+
+	private boolean decodeAndCheckMatches(CharSequence rawPassword, String encodedPassword) {
+		String[] parts = encodedPassword.split("\\$");
+		if (parts.length != 4) {
+			return false;
+		}
+		long params = Long.parseLong(parts[1], 16);
+		byte[] salt = decodePart(parts[2]);
+		byte[] derived = decodePart(parts[3]);
+		int cpuCost = (int) Math.pow(2, params >> 16 & 0xffff);
+		int memoryCost = (int) params >> 8 & 0xff;
+		int parallelization = (int) params & 0xff;
+		byte[] generated = SCrypt.generate(Utf8.encode(rawPassword), salt, cpuCost, memoryCost, parallelization,
+				this.keyLength);
+		return MessageDigest.isEqual(derived, generated);
+	}
+
+	private String digest(CharSequence rawPassword, byte[] salt) {
+		byte[] derived = SCrypt.generate(Utf8.encode(rawPassword), salt, this.cpuCost, this.memoryCost,
+				this.parallelization, this.keyLength);
+		String params = Long.toString(
+				((int) (Math.log(this.cpuCost) / Math.log(2)) << 16L) | this.memoryCost << 8 | this.parallelization,
+				16);
+		StringBuilder sb = new StringBuilder((salt.length + derived.length) * 2);
+		sb.append("$").append(params).append('$');
+		sb.append(encodePart(salt)).append('$');
+		sb.append(encodePart(derived));
+		return sb.toString();
+	}
+
+	private byte[] decodePart(String part) {
+		return Base64.getDecoder().decode(Utf8.encode(part));
+	}
+
+	private String encodePart(byte[] part) {
+		return Utf8.decode(Base64.getEncoder().encode(part));
+	}
+
+}
+
+```
+
+The `SCryptPasswordEncoder` is a class in Spring Security that implements the `PasswordEncoder` interface and uses the **SCrypt hashing function**. SCrypt is a memory-hard, CPU-intensive password hashing algorithm that is designed to be more resistant to hardware-based brute-force attacks compared to other algorithms like **BCrypt**. SCrypt achieves this by requiring both a significant amount of CPU time and memory resources, making it more difficult for attackers to use specialized hardware like GPUs or ASICs to crack passwords.
+
+Let’s break down the key components and methods of the `SCryptPasswordEncoder` to understand how it works, and how it can be configured for different use cases.
+
+---
+
+### 1. **Overview of SCrypt**
+
+SCrypt was designed to use significant resources for password hashing by requiring large amounts of **memory** as well as **CPU** time. This combination makes SCrypt more resistant to brute-force attacks using parallel processing systems (such as GPUs or ASICs) because these systems are typically optimized for CPU usage but not for memory consumption.
+
+#### Key Parameters:
+- **CPU cost (N)**: The cost parameter defines how many iterations the algorithm will run. The value must be a power of 2 and it controls the CPU time required for hashing. The higher the CPU cost, the slower the hashing process.
+- **Memory cost (r)**: This parameter defines how much memory is required during hashing. Increasing the memory cost makes it harder for attackers to use parallel systems efficiently.
+- **Parallelization (p)**: This parameter determines how many independent threads can be run in parallel during the hashing process. Increasing this value allows more parallelization but also increases the memory and CPU requirements.
+
+---
+
+### 2. **Key Components of `SCryptPasswordEncoder`**
+
+#### a) **CPU Cost (N)**
+```java
+private final int cpuCost;
+```
+The **cpuCost** parameter is also known as **N**. It controls the CPU time required to compute the password hash. The higher the CPU cost, the more computationally expensive it is to generate the hash.
+
+- The default value is **65,536**, which is equivalent to 2^16 iterations.
+- The value must be a power of 2 and greater than 1.
+
+#### Example:
+```java
+SCryptPasswordEncoder encoder = new SCryptPasswordEncoder(32768, 8, 1, 32, 16);
+```
+In this example, the `cpuCost` is set to **32,768**, which will require a lower number of iterations than the default value of **65,536**.
+
+#### b) **Memory Cost (r)**
+```java
+private final int memoryCost;
+```
+The **memoryCost** parameter is also known as **r**. It controls the amount of memory required during the hashing process. The higher the memory cost, the more memory-intensive the hashing process will be.
+
+- The default value is **8**, which requires about **128 KB** of memory during hashing.
+- A higher memory cost makes the hashing process more resistant to attacks using parallel hardware (like GPUs).
+
+#### c) **Parallelization (p)**
+```java
+private final int parallelization;
+```
+The **parallelization** parameter is also known as **p**. It defines how many threads can be run in parallel during hashing. This is useful for optimizing the use of multiple CPU cores.
+
+- The default value is **1**, meaning the algorithm will not take advantage of parallel processing.
+- Increasing the parallelization factor increases the memory and CPU requirements for each thread.
+
+#### Example:
+```java
+SCryptPasswordEncoder encoder = new SCryptPasswordEncoder(65536, 8, 2, 32, 16);
+```
+In this example, the `parallelization` is set to **2**, which allows the hashing process to run on two parallel threads.
+
+#### d) **Key Length (dkLen)**
+```java
+private final int keyLength;
+```
+The **keyLength** defines the size of the derived key (hashed password) produced by SCrypt.
+
+- The default value is **32 bytes** (256 bits).
+- The longer the key length, the more secure the hash, but it also requires more computational effort to generate.
+
+#### Example:
+```java
+SCryptPasswordEncoder encoder = new SCryptPasswordEncoder(65536, 8, 1, 64, 16);
+```
+In this example, the `keyLength` is set to **64 bytes** (512 bits), which produces a larger, more secure hash.
+
+#### e) **Salt Length (S)**
+```java
+private final BytesKeyGenerator saltGenerator;
+```
+The **salt** is a random value that is added to the password before hashing to ensure that even if two users have the same password, their hashes will be different.
+
+- The default salt length is **16 bytes**.
+- The salt is generated using a secure random number generator to ensure it is unpredictable.
+
+---
+
+### 3. **Key Methods of `SCryptPasswordEncoder`**
+
+#### a) **`encode(CharSequence rawPassword)`**
+
+This method hashes the raw password using the SCrypt algorithm. It generates a random salt, applies the SCrypt function with the configured parameters, and returns the resulting hash as a string.
+
+##### Example:
+```java
+SCryptPasswordEncoder encoder = SCryptPasswordEncoder.defaultsForSpringSecurity_v5_8();
+String hashedPassword = encoder.encode("password123");
+System.out.println(hashedPassword);
+```
+
+#### How it Works:
+1. A random **salt** is generated using the `saltGenerator`.
+2. The SCrypt algorithm is applied with the **rawPassword**, **salt**, **cpuCost**, **memoryCost**, **parallelization**, and **keyLength**.
+3. The result is a hashed password, which includes the salt, SCrypt parameters, and the hashed value.
+
+##### Sample Output:
+```
+$16384$8$1$wJfv2kHkwt0s7rmFQOAA5g$zue0M5eqih0s9gPXl72YrzRNHxwBLR2M1K2sZ7L/nF0=
+```
+- **$16384$8$1**: The SCrypt parameters (CPU cost, memory cost, and parallelization).
+- **wJfv2kHkwt0s7rmFQOAA5g**: The generated salt (Base64 encoded).
+- **zue0M5eqih0s9gPXl72YrzRNHxwBLR2M1K2sZ7L/nF0=**: The hashed password (Base64 encoded).
+
+#### b) **`matches(CharSequence rawPassword, String encodedPassword)`**
+
+This method checks if the raw password matches the stored hashed password. It uses the salt and parameters from the encoded password to re-compute the hash and compares it with the stored hash.
+
+##### Example:
+```java
+SCryptPasswordEncoder encoder = SCryptPasswordEncoder.defaultsForSpringSecurity_v5_8();
+String storedPasswordHash = encoder.encode("password123");
+boolean isMatch = encoder.matches("password123", storedPasswordHash);
+System.out.println(isMatch); // Output: true
+```
+
+#### How it Works:
+1. The method extracts the **salt**, **cpuCost**, **memoryCost**, and **parallelization** from the `encodedPassword`.
+2. It re-hashes the `rawPassword` using the extracted salt and SCrypt parameters.
+3. The newly computed hash is compared with the `encodedPassword`. If they match, the method returns `true`; otherwise, it returns `false`.
+
+---
+
+### 4. **Security Benefits of SCrypt**
+
+SCrypt provides several security benefits that make it resistant to certain types of attacks:
+
+#### a) **Memory-Hardness**
+SCrypt requires significant memory resources during the hashing process. This makes it more resistant to brute-force attacks using parallel processing systems like GPUs or ASICs, which are typically optimized for CPU-bound tasks but not for memory-bound tasks.
+
+#### b) **CPU Intensity**
+SCrypt is computationally expensive, meaning it requires a significant amount of CPU time to compute a hash. This makes it slower and more secure against brute-force attacks compared to other algorithms like MD5 or SHA-1.
+
+#### c) **Salting**
+SCrypt uses a random salt to ensure that even if two users have the same password, their hashes will be different. This protects against rainbow table attacks, where precomputed hashes are used to crack passwords.
+
+---
+
+### 5. **Example Usage in a Real Application**
+
+#### User Registration:
+1. The user enters a password (`password123`).
+2. The `SCryptPasswordEncoder` hashes the password with a random salt and the configured SCrypt parameters.
+3. The hashed password is stored in the database.
+
+```java
+SCryptPasswordEncoder encoder = SCryptPasswordEncoder.defaultsForSpringSecurity_v5_8();
+String hashedPassword = encoder.encode("password123");
+// Store hashedPassword in the database
+```
+
+#### User Login:
+1. The user enters their password (`password123`).
+2. The system retrieves the hashed password from the database.
+3. The `matches()` method re-hashes the entered password with the stored salt and compares it to the stored hash.
+
+```java
+String storedPasswordHash = getStoredPasswordFromDatabase();
+boolean isMatch = encoder.matches("password123", storedPasswordHash);
+if (isMatch) {
+    // Login success
+} else {
+    // Login failure
+}
+```
+
+---
+
+### 6. **Conclusion**
+
+The `SCryptPasswordEncoder` in Spring Security is a powerful and secure password hashing mechanism that is designed to resist attacks using specialized hardware like GPUs and ASICs. By using both CPU and memory resources, SCrypt ensures that brute-force attacks are significantly more difficult compared to other algorithms.
+
+#### Key Benefits:
+- **Memory-Hardness**: SCrypt's
+
+```java
+/*
+ * Copyright 2002-2022 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.springframework.security.crypto.argon2;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.bouncycastle.crypto.generators.Argon2BytesGenerator;
+import org.bouncycastle.crypto.params.Argon2Parameters;
+
+import org.springframework.security.crypto.keygen.BytesKeyGenerator;
+import org.springframework.security.crypto.keygen.KeyGenerators;
+import org.springframework.security.crypto.password.PasswordEncoder;
+
+/**
+ * <p>
+ * Implementation of PasswordEncoder that uses the Argon2 hashing function. Clients can
+ * optionally supply the length of the salt to use, the length of the generated hash, a
+ * cpu cost parameter, a memory cost parameter and a parallelization parameter.
+ * </p>
+ *
+ * <p>
+ * Note:
+ * </p>
+ * <p>
+ * The currently implementation uses Bouncy castle which does not exploit
+ * parallelism/optimizations that password crackers will, so there is an unnecessary
+ * asymmetry between attacker and defender.
+ * </p>
+ *
+ * @author Simeon Macke
+ * @since 5.3
+ */
+public class Argon2PasswordEncoder implements PasswordEncoder {
+
+	private static final int DEFAULT_SALT_LENGTH = 16;
+
+	private static final int DEFAULT_HASH_LENGTH = 32;
+
+	private static final int DEFAULT_PARALLELISM = 1;
+
+	private static final int DEFAULT_MEMORY = 1 << 14;
+
+	private static final int DEFAULT_ITERATIONS = 2;
+
+	private final Log logger = LogFactory.getLog(getClass());
+
+	private final int hashLength;
+
+	private final int parallelism;
+
+	private final int memory;
+
+	private final int iterations;
+
+	private final BytesKeyGenerator saltGenerator;
+
+	/**
+	 * Constructs an Argon2 password encoder with the provided parameters.
+	 * @param saltLength the salt length (in bytes)
+	 * @param hashLength the hash length (in bytes)
+	 * @param parallelism the parallelism
+	 * @param memory the memory cost
+	 * @param iterations the number of iterations
+	 */
+	public Argon2PasswordEncoder(int saltLength, int hashLength, int parallelism, int memory, int iterations) {
+		this.hashLength = hashLength;
+		this.parallelism = parallelism;
+		this.memory = memory;
+		this.iterations = iterations;
+		this.saltGenerator = KeyGenerators.secureRandom(saltLength);
+	}
+
+	/**
+	 * Constructs an Argon2 password encoder with a salt length of 16 bytes, a hash length
+	 * of 32 bytes, parallelism of 1, memory cost of 1 << 12 and 3 iterations.
+	 * @return the {@link Argon2PasswordEncoder}
+	 * @since 5.8
+	 * @deprecated Use {@link #defaultsForSpringSecurity_v5_8()} instead
+	 */
+	@Deprecated
+	public static Argon2PasswordEncoder defaultsForSpringSecurity_v5_2() {
+		return new Argon2PasswordEncoder(16, 32, 1, 1 << 12, 3);
+	}
+
+	/**
+	 * Constructs an Argon2 password encoder with a salt length of 16 bytes, a hash length
+	 * of 32 bytes, parallelism of 1, memory cost of 1 << 14 and 2 iterations.
+	 * @return the {@link Argon2PasswordEncoder}
+	 * @since 5.8
+	 */
+	public static Argon2PasswordEncoder defaultsForSpringSecurity_v5_8() {
+		return new Argon2PasswordEncoder(DEFAULT_SALT_LENGTH, DEFAULT_HASH_LENGTH, DEFAULT_PARALLELISM, DEFAULT_MEMORY,
+				DEFAULT_ITERATIONS);
+	}
+
+	@Override
+	public String encode(CharSequence rawPassword) {
+		byte[] salt = this.saltGenerator.generateKey();
+		byte[] hash = new byte[this.hashLength];
+		// @formatter:off
+		Argon2Parameters params = new Argon2Parameters
+				.Builder(Argon2Parameters.ARGON2_id)
+				.withSalt(salt)
+				.withParallelism(this.parallelism)
+				.withMemoryAsKB(this.memory)
+				.withIterations(this.iterations)
+				.build();
+		// @formatter:on
+		Argon2BytesGenerator generator = new Argon2BytesGenerator();
+		generator.init(params);
+		generator.generateBytes(rawPassword.toString().toCharArray(), hash);
+		return Argon2EncodingUtils.encode(hash, params);
+	}
+
+	@Override
+	public boolean matches(CharSequence rawPassword, String encodedPassword) {
+		if (encodedPassword == null) {
+			this.logger.warn("password hash is null");
+			return false;
+		}
+		Argon2EncodingUtils.Argon2Hash decoded;
+		try {
+			decoded = Argon2EncodingUtils.decode(encodedPassword);
+		}
+		catch (IllegalArgumentException ex) {
+			this.logger.warn("Malformed password hash", ex);
+			return false;
+		}
+		byte[] hashBytes = new byte[decoded.getHash().length];
+		Argon2BytesGenerator generator = new Argon2BytesGenerator();
+		generator.init(decoded.getParameters());
+		generator.generateBytes(rawPassword.toString().toCharArray(), hashBytes);
+		return constantTimeArrayEquals(decoded.getHash(), hashBytes);
+	}
+
+	@Override
+	public boolean upgradeEncoding(String encodedPassword) {
+		if (encodedPassword == null || encodedPassword.length() == 0) {
+			this.logger.warn("password hash is null");
+			return false;
+		}
+		Argon2Parameters parameters = Argon2EncodingUtils.decode(encodedPassword).getParameters();
+		return parameters.getMemory() < this.memory || parameters.getIterations() < this.iterations;
+	}
+
+	private static boolean constantTimeArrayEquals(byte[] expected, byte[] actual) {
+		if (expected.length != actual.length) {
+			return false;
+		}
+		int result = 0;
+		for (int i = 0; i < expected.length; i++) {
+			result |= expected[i] ^ actual[i];
+		}
+		return result == 0;
+	}
+
+}
+
+```
+
+The `Argon2PasswordEncoder` is an implementation of the `PasswordEncoder` interface provided by Spring Security, and it uses the **Argon2 hashing function** for password encoding and verification. Argon2 is a key derivation function designed for securing passwords and is recognized for winning the Password Hashing Competition (PHC) in 2015. It is known for being a **memory-hard** function, meaning it requires a significant amount of memory to compute, which makes it resistant to attacks using specialized hardware (such as GPUs or ASICs).
+
+### Key Features of Argon2
+
+- **Memory-Hardness**: Argon2 is designed to consume both CPU and memory resources, making it resistant to attacks like brute-force and rainbow table attacks.
+- **Parallelism**: Argon2 allows multiple threads to be run in parallel during hashing, making it more efficient on multi-core processors.
+- **Configurable Parameters**: Argon2 allows you to configure the number of iterations, memory usage, parallelism, and hash length to make it adaptable to different security and performance needs.
+
+---
+
+### 1. **Core Components of `Argon2PasswordEncoder`**
+
+#### a) **Salt Length (saltLength)**
+```java
+private final BytesKeyGenerator saltGenerator;
+```
+- The **salt** is a randomly generated value that is used to ensure that even if two users have the same password, their password hashes will be different.
+- The default salt length is **16 bytes**, which is secure enough for most cases.
+
+#### b) **Hash Length (hashLength)**
+```java
+private final int hashLength;
+```
+- The **hash length** determines the length (in bytes) of the generated password hash.
+- The default value is **32 bytes**, which is sufficient for generating a 256-bit hash.
+  
+#### c) **Parallelism**
+```java
+private final int parallelism;
+```
+- **Parallelism** controls the number of threads that can run concurrently during hashing. A higher value makes hashing faster on multi-core systems.
+- The default value is **1**, meaning no parallelism is used.
+
+#### d) **Memory Cost**
+```java
+private final int memory;
+```
+- The **memory cost** parameter defines the amount of memory (in kilobytes) required for hashing. A higher memory cost makes it harder for attackers to brute-force the password.
+- The default value is **1 << 14** (16,384 KB or 16 MB).
+
+#### e) **Iterations**
+```java
+private final int iterations;
+```
+- The **iterations** parameter defines how many times the hashing algorithm is executed. More iterations increase the computation time, making it more resistant to attacks.
+- The default value is **2** iterations.
+
+---
+
+### 2. **Key Methods of `Argon2PasswordEncoder`**
+
+#### a) **`encode(CharSequence rawPassword)`**
+
+The `encode` method generates a hashed password from the raw password by performing the following steps:
+
+1. **Generate Salt**: A random salt is generated using the `saltGenerator`.
+2. **Configure Argon2 Parameters**: The parameters (parallelism, memory, iterations, salt) are set.
+3. **Hash the Password**: The raw password is hashed using the Argon2 algorithm.
+4. **Return Encoded String**: The final result includes the encoded hash along with Argon2 parameters and the salt.
+
+##### Example:
+```java
+Argon2PasswordEncoder encoder = Argon2PasswordEncoder.defaultsForSpringSecurity_v5_8();
+String hashedPassword = encoder.encode("mySecurePassword123");
+System.out.println(hashedPassword);
+```
+
+##### Output:
+The result of this operation will be a Base64-encoded string representing the hashed password, salt, and Argon2 parameters. It may look like this:
+```
+$argon2id$v=19$m=16384,t=2,p=1$someSalt$someHashedValue
+```
+
+- **$argon2id**: Indicates that the Argon2id version of Argon2 was used.
+- **v=19**: Specifies the Argon2 version (v19).
+- **m=16384**: Specifies the memory cost in kilobytes (16 MB in this case).
+- **t=2**: Specifies the number of iterations (2 iterations).
+- **p=1**: Specifies the parallelism level (1 thread).
+- **someSalt**: The randomly generated salt (Base64-encoded).
+- **someHashedValue**: The hashed password (Base64-encoded).
+
+#### b) **`matches(CharSequence rawPassword, String encodedPassword)`**
+
+The `matches` method verifies whether the raw password matches the encoded (stored) password by performing the following steps:
+
+1. **Decode Encoded Password**: The stored password hash is decoded to retrieve the Argon2 parameters and salt.
+2. **Recompute Hash**: The raw password is hashed again using the same salt and parameters.
+3. **Compare Hashes**: The newly computed hash is compared to the stored hash.
+4. **Return Boolean**: If the hashes match, it returns `true`, otherwise `false`.
+
+##### Example:
+```java
+String storedHash = encoder.encode("mySecurePassword123");
+boolean match = encoder.matches("mySecurePassword123", storedHash);
+System.out.println(match); // Output: true
+```
+
+#### How It Works:
+1. The `matches` method extracts the salt, memory cost, iterations, and parallelism from the encoded password string.
+2. It re-hashes the raw password using the extracted parameters.
+3. If the newly hashed password matches the stored hash, it returns `true`.
+
+---
+
+### 3. **Security Aspects of Argon2PasswordEncoder**
+
+#### a) **Memory-Hardness**
+Argon2 is a **memory-hard** algorithm, meaning it requires a significant amount of memory to compute the hash. This feature makes it resistant to **GPU** or **ASIC**-based brute-force attacks, as these systems are typically optimized for CPU tasks but struggle with memory-bound tasks.
+
+#### b) **Salted Hashing**
+Argon2 adds a unique salt to each password, ensuring that even if two users have the same password, their hashed passwords will be different. This feature protects against **rainbow table** attacks, where precomputed hash values are used to crack passwords.
+
+#### c) **Configurable Parameters**
+The ability to configure the **memory cost**, **iterations**, and **parallelism** allows Argon2 to adapt to different security needs:
+- **More memory** and **iterations** increase the time required to compute the hash, making brute-force attacks more expensive.
+- **Parallelism** improves performance on multi-core systems, making the hashing process faster without sacrificing security.
+
+#### d) **Constant Time Comparison**
+```java
+private static boolean constantTimeArrayEquals(byte[] expected, byte[] actual)
+```
+Argon2 uses a **constant-time comparison** to prevent **timing attacks**. A timing attack is a side-channel attack where an attacker attempts to break cryptographic systems by analyzing the time taken to perform certain operations (like comparing strings). Constant-time comparison ensures that the comparison always takes the same amount of time, regardless of the input, making it more secure.
+
+---
+
+### 4. **How to Tune Parameters for Security**
+
+#### a) **Increasing Memory Cost**
+If you are building a highly secure system, you may want to increase the **memory cost** parameter. For example, setting the memory cost to 1 << 16 (65,536 KB or 64 MB) makes the hashing process slower and more memory-intensive, which makes it harder for attackers to brute-force the password.
+
+```java
+Argon2PasswordEncoder encoder = new Argon2PasswordEncoder(16, 32, 1, 1 << 16, 3);
+```
+
+#### b) **Increasing Iterations**
+You can increase the number of **iterations** to make the hashing process slower, increasing the time required to compute each hash. For example, setting the iterations to **5** increases security but may slow down user authentication.
+
+```java
+Argon2PasswordEncoder encoder = new Argon2PasswordEncoder(16, 32, 1, 1 << 14, 5);
+```
+
+#### c) **Parallelism**
+If you are working with a multi-core system, you can increase **parallelism** to take advantage of multiple CPU cores, making the hashing process faster without reducing security.
+
+```java
+Argon2PasswordEncoder encoder = new Argon2PasswordEncoder(16, 32, 4, 1 << 14, 2);
+```
+
+---
+
+### 5. **Example in a Real-World Application**
+
+#### User Registration:
+1. The user provides a password (`password123`).
+2. The `Argon2PasswordEncoder` hashes the password with a randomly generated salt and Argon2 parameters.
+3. The hashed password is stored in the database.
+
+```java
+Argon2PasswordEncoder encoder = Argon2PasswordEncoder.defaultsForSpringSecurity_v5_8();
+String hashedPassword = encoder.encode("password123");
+// Store hashedPassword in the database
+```
+
+#### User Login:
+1. The user enters their password (`password123`).
+2. The system retrieves the hashed password from the database.
+3. The `matches()` method hashes the entered password with the stored salt and compares it to the stored hash.
+
+```java
+String storedPasswordHash = getStoredPasswordFromDatabase();
+boolean isMatch = encoder.matches("password123", storedPasswordHash);
+if (isMatch) {
+    // Login success
+} else {
+    // Login failure
+}
+```
+
+---
+
+### Conclusion
+
+The `Argon2PasswordEncoder` offers a robust, secure mechanism for hashing and verifying passwords. With its configurable memory cost, iterations, and parallelism, it provides superior protection against brute-force attacks and is a
+
+ great choice for modern security-conscious applications. By tuning the parameters to your system's needs, you can strike a balance between security and performance.
+
+
 ## 010 Demo of registration and login with Bcrypt password encoder
