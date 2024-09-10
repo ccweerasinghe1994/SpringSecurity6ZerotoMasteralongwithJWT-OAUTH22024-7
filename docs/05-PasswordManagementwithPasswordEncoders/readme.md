@@ -374,6 +374,26 @@
       - [User Login:](#user-login-2)
     - [Conclusion](#conclusion-4)
   - [010 Demo of registration and login with Bcrypt password encoder](#010-demo-of-registration-and-login-with-bcrypt-password-encoder)
+    - [Key Features of `DelegatingPasswordEncoder`](#key-features-of-delegatingpasswordencoder)
+    - [1. **How `DelegatingPasswordEncoder` Works**](#1-how-delegatingpasswordencoder-works)
+      - [Example Encoded Password:](#example-encoded-password)
+    - [2. **Flow of `DelegatingPasswordEncoder`**](#2-flow-of-delegatingpasswordencoder)
+    - [3. **Configuration of `DelegatingPasswordEncoder`**](#3-configuration-of-delegatingpasswordencoder)
+    - [4. **Key Methods in `DelegatingPasswordEncoder`**](#4-key-methods-in-delegatingpasswordencoder)
+      - [a) **encode(CharSequence rawPassword)**](#a-encodecharsequence-rawpassword-7)
+        - [Example:](#example-25)
+        - [Output:](#output-2)
+      - [b) **matches(CharSequence rawPassword, String encodedPassword)**](#b-matchescharsequence-rawpassword-string-encodedpassword-7)
+        - [Example:](#example-26)
+    - [5. **Real-World Scenario: Migrating Passwords**](#5-real-world-scenario-migrating-passwords)
+      - [Without `DelegatingPasswordEncoder`:](#without-delegatingpasswordencoder)
+      - [With `DelegatingPasswordEncoder`:](#with-delegatingpasswordencoder)
+    - [6. **Advantages of Using `DelegatingPasswordEncoder`**](#6-advantages-of-using-delegatingpasswordencoder)
+    - [7. **Detailed Example**](#7-detailed-example)
+      - [Old Password:](#old-password)
+      - [New Password:](#new-password)
+      - [Steps:](#steps-1)
+    - [Conclusion](#conclusion-5)
 
 
 ## 001 How our passwords validated with out PasswordEncoders
@@ -4334,3 +4354,157 @@ The `Argon2PasswordEncoder` offers a robust, secure mechanism for hashing and ve
 
 
 ## 010 Demo of registration and login with Bcrypt password encoder
+
+![alt text](image-17.png)
+
+The **DelegatingPasswordEncoder** in Spring Security is a flexible password encoding mechanism that allows an application to manage multiple password encoders simultaneously. This is especially useful when you need to switch from one encoding algorithm to another—such as upgrading for better security—without breaking existing password hashes.
+
+### Key Features of `DelegatingPasswordEncoder`
+
+- **Multiple Password Encoders**: It allows you to support different password encoding algorithms at the same time, such as `BCryptPasswordEncoder`, `SCryptPasswordEncoder`, `Pbkdf2PasswordEncoder`, etc.
+- **Backwards Compatibility**: When upgrading the password encoding algorithm (due to security vulnerabilities or performance improvements), you can still validate older passwords hashed with previous encoders.
+- **Prefix-Based**: The encoded password string is prefixed with an identifier (like `{bcrypt}`), which tells `DelegatingPasswordEncoder` which encoder was used.
+
+---
+
+### 1. **How `DelegatingPasswordEncoder` Works**
+
+The **DelegatingPasswordEncoder** uses a **map of encoders** where each encoder is associated with a prefix (like `{bcrypt}`, `{noop}`, etc.). The encoded password is prefixed with one of these values, and based on that, the corresponding encoder is used to validate or encode the password.
+
+#### Example Encoded Password:
+```
+{bcrypt}$2a$10$DowJonesnSejksdfAK44X/n22K...
+```
+
+- **{bcrypt}**: The prefix that indicates the encoding algorithm used (`BCryptPasswordEncoder`).
+- **$2a$10$DowJonesnSejksdfAK44X...**: The actual hashed password with BCrypt.
+
+---
+
+### 2. **Flow of `DelegatingPasswordEncoder`**
+
+1. **Registration (Encoding)**:
+    - During user registration, when the password is encoded, the **DelegatingPasswordEncoder** uses the default encoder (typically `BCryptPasswordEncoder`) and appends the corresponding prefix (`{bcrypt}`) to the encoded password.
+
+2. **Login (Matching)**:
+    - During login, when the user submits the password, the `matches()` method identifies the encoder by the prefix in the stored password. For example, if the prefix is `{bcrypt}`, it will delegate the check to `BCryptPasswordEncoder`.
+    - The raw password is re-encoded using the same algorithm and compared to the stored hashed password.
+
+---
+
+### 3. **Configuration of `DelegatingPasswordEncoder`**
+
+Here is a sample code snippet that shows how you can configure `DelegatingPasswordEncoder` with multiple encoders:
+
+```java
+@Bean
+public PasswordEncoder passwordEncoder() {
+    String defaultEncodingId = "bcrypt";
+    Map<String, PasswordEncoder> encoders = new HashMap<>();
+    encoders.put("bcrypt", new BCryptPasswordEncoder());
+    encoders.put("noop", NoOpPasswordEncoder.getInstance());
+    encoders.put("scrypt", new SCryptPasswordEncoder());
+    encoders.put("argon2", new Argon2PasswordEncoder());
+    
+    return new DelegatingPasswordEncoder(defaultEncodingId, encoders);
+}
+```
+
+In this example:
+- **Default Encoding**: `BCryptPasswordEncoder` is the default encoder, indicated by the `"bcrypt"` key.
+- **Encoders Map**: A map of different encoders is provided, including `BCryptPasswordEncoder`, `NoOpPasswordEncoder`, `SCryptPasswordEncoder`, and `Argon2PasswordEncoder`.
+  
+When a password is encoded using this setup, the password will be stored with a prefix like `{bcrypt}`, `{scrypt}`, or `{argon2}` based on the algorithm used.
+
+---
+
+### 4. **Key Methods in `DelegatingPasswordEncoder`**
+
+#### a) **encode(CharSequence rawPassword)**
+
+This method encodes the raw password using the default encoder (such as `BCryptPasswordEncoder`) and adds the corresponding prefix (like `{bcrypt}`) to the encoded password.
+
+##### Example:
+```java
+PasswordEncoder encoder = passwordEncoder();
+String hashedPassword = encoder.encode("myPassword123");
+System.out.println(hashedPassword);
+```
+
+##### Output:
+```
+{bcrypt}$2a$10$DowJonesnSejksdfAK44X/n22K...
+```
+
+#### b) **matches(CharSequence rawPassword, String encodedPassword)**
+
+This method is used to check if the raw password matches the encoded password. The `DelegatingPasswordEncoder` identifies the appropriate encoder using the prefix in the encoded password and delegates the matching process to that specific encoder.
+
+##### Example:
+```java
+PasswordEncoder encoder = passwordEncoder();
+String storedPassword = "{bcrypt}$2a$10$DowJonesnSejksdfAK44X/n22K...";
+boolean match = encoder.matches("myPassword123", storedPassword);
+System.out.println(match); // Output: true
+```
+
+---
+
+### 5. **Real-World Scenario: Migrating Passwords**
+
+Imagine you have been using `NoOpPasswordEncoder` (which stores passwords in plain text) in an old system. Now, you want to switch to `BCryptPasswordEncoder` for better security.
+
+#### Without `DelegatingPasswordEncoder`:
+- You would have to force all users to reset their passwords.
+- You wouldn’t be able to validate old passwords without some complex migration logic.
+
+#### With `DelegatingPasswordEncoder`:
+- You can support both `NoOpPasswordEncoder` for existing passwords and `BCryptPasswordEncoder` for new users.
+- When an existing user logs in, the `matches()` method will detect the `{noop}` prefix and use `NoOpPasswordEncoder` to validate the password.
+- When a new user registers, the password will be hashed using `BCryptPasswordEncoder` and stored with the `{bcrypt}` prefix.
+
+---
+
+### 6. **Advantages of Using `DelegatingPasswordEncoder`**
+
+1. **Flexible Migration**:
+   - It enables you to seamlessly migrate to a more secure password encoding strategy without forcing all users to reset their passwords.
+   
+2. **Backward Compatibility**:
+   - Even when new passwords are hashed with modern algorithms like `Argon2` or `BCrypt`, old passwords hashed with weaker or legacy algorithms (like `NoOp` or `SHA-256`) can still be validated.
+
+3. **Security Improvements**:
+   - You can upgrade your system to use more secure algorithms (like Argon2 or BCrypt) as vulnerabilities are discovered or as stronger algorithms are introduced.
+
+4. **Transparency**:
+   - Users don’t have to be aware of the change. Their old passwords will still work, and new passwords will automatically use the new, more secure algorithm.
+
+---
+
+### 7. **Detailed Example**
+
+Consider a web application that initially used `NoOpPasswordEncoder` (insecure, plain text storage). Now, the application is transitioning to `BCryptPasswordEncoder`:
+
+#### Old Password:
+```
+{noop}password123
+```
+
+#### New Password:
+```
+{bcrypt}$2a$10$DowJonesnSejksdfAK44X/n22K...
+```
+
+#### Steps:
+1. **Login Process**:
+    - If a user logs in with the old password, `{noop}` is detected, and `NoOpPasswordEncoder` is used to validate the password.
+    - If a user logs in with a new password, `{bcrypt}` is detected, and `BCryptPasswordEncoder` is used.
+   
+2. **Registration Process**:
+    - For new users, the password will be hashed using the `BCryptPasswordEncoder`, and the result will be stored with the `{bcrypt}` prefix.
+
+---
+
+### Conclusion
+
+The `DelegatingPasswordEncoder` is an essential tool for managing password hashing in modern applications. It provides the flexibility to use multiple encoding strategies, ensuring that your system can upgrade to newer, more secure algorithms without disrupting existing users. By allowing old passwords to be validated with legacy encoders and new passwords to be encoded with stronger algorithms, `DelegatingPasswordEncoder` enables smooth transitions in password management.
