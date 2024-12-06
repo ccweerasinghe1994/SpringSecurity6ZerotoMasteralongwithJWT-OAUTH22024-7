@@ -1,0 +1,14 @@
+spring:
+  application:
+    name: ${SPRING_APP_ID:from-env}
+logging:
+  pattern:
+    console: ${LOG_PATTERN_CONSOLE:%green(%d{HH:mm:ss.SSS}) %blue(%-5level) %red([%thread]) %yellow(%logger{15}) - %msg%n}
+#spring.application.name=abcbank
+#spring.datasource.url=jdbc:postgresql://db:5432/example
+#spring.datasource.username=postgres
+#spring.datasource.password=yourpassword
+#spring.jpa.hibernate.ddl-auto=update
+server:
+  port: ${PORT:8080}
+#spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect
