@@ -6,14 +6,14 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-public class WelcomeController {
+public class NoticesController {
 
-    private static final Logger log = LogManager.getLogger(WelcomeController.class);
+    private static final Logger log = LogManager.getLogger(NoticesController.class);
 
-    @GetMapping("/welcome")
-    public String welcome() {
+    @GetMapping("/notices")
+    public String getNotices() {
         String apiURL = "http://localhost:8080";
-        log.info("Welcome API is called. API URL: {}/welcome", apiURL);
-        return "Welcome to ABC Bank! Your security is our priority.";
+        log.info("Notices API is called. API URL: {}/notices", apiURL);
+        return "here are the notices";
     }
 }
