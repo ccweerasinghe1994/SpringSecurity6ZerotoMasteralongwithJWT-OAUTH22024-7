@@ -1,6 +1,16 @@
 spring:
   application:
     name: ${SPRING_APP_ID:from-env}
+  datasource:
+    url: jdbc:mysql://${MYSQL_DATABASE_HOST:localhost}:${MYSQL_DATABASE_PORT:3306}/${MYSQL_DATABASE:abcbank}
+    username: ${MYSQL_USER:root}
+    password: ${MYSQL_ROOT_PASSWORD:123456}
+  jpa:
+    show-sql: ${JPA_SHOW_SQL:true}
+    properties:
+      hibernate:
+        format_sql: ${JPA_FORMAT_SQL:true}
+
 logging:
   pattern:
     console: ${LOG_PATTERN_CONSOLE:%green(%d{HH:mm:ss.SSS}) %blue(%-5level) %red([%thread]) %yellow(%logger{15}) - %msg%n}

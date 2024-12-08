@@ -9,54 +9,54 @@ services:
   #     - SPRING_PROFILES_ACTIVE=prod
   #   restart: unless-stopped
 
-  server-dev:
-    build:
-      context: .
-      target: dev
-    ports:
-      - "8080:8080"
-    develop:
-      watch:
-        - action: sync+restart
-          path: ./src
-          target: /build/src
-        - action: sync+restart
-          path: ./pom.xml
-          target: /build/pom.xml
-        - action: sync+restart
-          path: ./mvnw
-          target: /build/mvnw
-          
-          
-    # volumes:
-    #   - .:/build
-    #   - ~/.m2:/root/.m2
-    environment:
-      - SPRING_PROFILES_ACTIVE=dev
-    command: ./mvnw spring-boot:run
-    depends_on:
-      db:
-        condition: service_healthy
-    restart: unless-stopped
+  #  server-dev:
+  #    build:
+  #      context: .
+  #      target: dev
+  #    ports:
+  #      - "8080:8080"
+  #    develop:
+  #      watch:
+  #        - action: sync+restart
+  #          path: ./src
+  #          target: /build/src
+  #        - action: sync+restart
+  #          path: ./pom.xml
+  #          target: /build/pom.xml
+  #        - action: sync+restart
+  #          path: ./mvnw
+  #          target: /build/mvnw
+  #
+  #
+  #    # volumes:
+  #    #   - .:/build
+  #    #   - ~/.m2:/root/.m2
+  #    environment:
+  #      - SPRING_PROFILES_ACTIVE=dev
+  #    command: ./mvnw spring-boot:run
+  #    depends_on:
+  #      db:
+  #        condition: service_healthy
+  #    restart: unless-stopped
 
   db:
-    image: postgres:17
+    image: mysql:9.0.1
     restart: always
     environment:
-      - POSTGRES_DB=example
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=yourpassword
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
     volumes:
-      - db-data:/var/lib/postgresql/data
+      - db-data-abc-bank:/var/lib/mysql
     ports:
-      - "5432:5432"
+      - "3306:3306"
     healthcheck:
-      test: [ "CMD", "pg_isready", "-U", "postgres" ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      interval: 30s            # Time between running the check (default: 30s)
+      timeout: 10s             # Time to wait before considering the check a failure (default: 30s)
+      retries: 5               # Consecutive failures needed to consider the container unhealthy (default: 3)
+      start_period: 30s        # Time to wait for the container to initialize before starting healthchecks (default: 0)
 
 volumes:
-  db-data:
+  db-data-abc-bank:
 
 
